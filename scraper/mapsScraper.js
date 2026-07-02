@@ -1,4 +1,4 @@
-const { chromium } = require('playwright');
+const { launchBrowser } = require('./browserHelper');
 const jobManager = require('./jobManager');
 
 /**
@@ -178,15 +178,7 @@ async function scrapeGoogleMaps(jobId, query, location, maxResults = 40) {
     jobManager.updateStatus(jobId, 'scraping');
     jobManager.updateProgress(jobId, 5, '🚀 Launching browser...');
 
-    browser = await chromium.launch({
-      headless,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-blink-features=AutomationControlled',
-      ],
-    });
+    browser = await launchBrowser({ headless });
 
     const context = await browser.newContext({
       userAgent:

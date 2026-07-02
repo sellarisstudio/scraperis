@@ -3,310 +3,490 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="ScrapMap - Extract business data from Google Maps. Search by keyword and location, export to CSV or Excel.">
-  <title>ScrapMap — Google Maps Business Scraper</title>
+  <meta name="description" content="Scraperis - Extract business data from Scraperis. Search by keyword and location, export to CSV or Excel.">
+  <title>Scraperis — Extract Business Data from Scraperis</title>
   <link rel="stylesheet" href="/css/style.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗺️</text></svg>">
 </head>
 <body>
 
-  <!-- Header -->
-  <header class="header" id="header">
-    <div class="header-inner">
-      <a href="/" class="logo">
-        <div class="logo-icon">🗺️</div>
-        <div class="logo-text">Scrap<span>Map</span></div>
-      </a>
-      <div class="header-badge">
-        <span>Playwright Engine</span>
+  <div class="t-app-layout">
+    <!-- Organism: Sidebar -->
+    <aside class="o-sidebar">
+      <div class="o-sidebar-header">
+        <a href="/" class="m-logo">
+          <img src="/images/logo-full.png" alt="Scraperis Logo" style="max-height: 40px; max-width: 100%; object-fit: contain;">
+        </a>
       </div>
-    </div>
-  </header>
 
-  <!-- Main Content -->
-  <main>
-    <div class="container">
+      <nav class="o-sidebar-nav">
+        <button type="button" class="a-nav-item active" id="nav-scraper-btn">
+          <span class="a-nav-icon"><i data-lucide="search"></i></span>
+          <span class="a-nav-label">Scraper Panel</span>
+        </button>
+        <button type="button" class="a-nav-item" id="nav-basket-btn">
+          <span class="a-nav-icon"><i data-lucide="shopping-basket"></i></span>
+          <span class="a-nav-label">Leads Basket</span>
+          <span class="a-badge a-badge-count" id="sidebar-basket-badge" style="display: none;">0</span>
+        </button>
+        <button type="button" class="a-nav-item" id="nav-config-btn">
+          <span class="a-nav-icon"><i data-lucide="settings"></i></span>
+          <span class="a-nav-label">Configuration</span>
+        </button>
+      </nav>
 
-      <!-- Hero Section -->
-      <section class="hero">
-        <h1 class="hero-title">
-          Extract Business Data<br>from <span class="accent">Google Maps</span>
-        </h1>
-        <p class="hero-subtitle">
-          Search any business type in any location. Get names, addresses, ratings, phone numbers, websites, and more — exported to CSV or Excel.
-        </p>
-      </section>
-
-      <!-- Feature Cards -->
-      <section class="features">
-        <div class="feature-card">
-          <div class="feature-icon">🔍</div>
-          <div class="feature-title">Smart Search</div>
-          <div class="feature-desc">Search by keyword like "kedai kopi", "restoran", or "toko kelontong" in any location.</div>
+      <div class="o-sidebar-footer">
+        <div class="a-engine-badge">
+          <span>Playwright Active</span>
         </div>
-        <div class="feature-card">
-          <div class="feature-icon">⚡</div>
-          <div class="feature-title">Real-time Progress</div>
-          <div class="feature-desc">Watch live as data is extracted from each business listing with detailed progress updates.</div>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">📊</div>
-          <div class="feature-title">Export Data</div>
-          <div class="feature-desc">Download results as CSV or Excel file. Includes ratings, addresses, phones, and coordinates.</div>
-        </div>
-      </section>
+      </div>
+    </aside>
 
-      <!-- Search Card -->
-      <section class="search-card" id="search-card">
-        <!-- Mode Selector -->
-        <div class="mode-selector">
-          <button type="button" class="mode-btn active" id="mode-maps-btn" data-mode="maps">🗺️ Google Maps</button>
-          <button type="button" class="mode-btn" id="mode-search-btn" data-mode="search">🌐 Google Search (Sosmed)</button>
-        </div>
+    <!-- Template: Content Area -->
+    <main class="content-area">
 
-        <form class="search-form" id="search-form">
-          <!-- Hidden Mode Input -->
-          <input type="hidden" id="search-mode" name="mode" value="maps">
+      <!-- ==========================================
+           VIEW 1: SCRAPER VIEW PANEL
+           ========================================== -->
+      <div class="view-panel active" id="view-scraper">
+        
+        <!-- Hero Section -->
+        <section class="m-hero">
+          <h1 class="a-hero-title">
+            Extract Business Data from <span class="a-accent">Scraperis</span>
+          </h1>
+          <p class="a-hero-subtitle">
+            Search any business type in any location. Get names, addresses, ratings, phone numbers, websites, and more.
+          </p>
+        </section>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label" for="search-query" id="label-query">🔍 Business Keyword</label>
-              <input
-                type="text"
-                class="form-input"
-                id="search-query"
-                name="query"
-                placeholder="e.g. kedai kopi, esteh, toko kelontong"
-                required
-                autocomplete="off"
-              >
-              <span class="form-hint" id="hint-query">What type of business are you looking for?</span>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="search-location">📍 Location</label>
-              <input
-                type="text"
-                class="form-input"
-                id="search-location"
-                name="location"
-                placeholder="e.g. Jakarta Selatan, Bandung, Surabaya"
-                required
-                autocomplete="off"
-              >
-              <span class="form-hint">City, area, or specific neighborhood</span>
-            </div>
+        <!-- Features (Grid) -->
+        <section class="o-features-grid">
+          <div class="m-feature-card">
+            <div class="a-feature-icon"><i data-lucide="search"></i></div>
+            <div class="a-feature-title">Smart Search</div>
+            <div class="a-feature-desc">Search by keyword in any location.</div>
           </div>
-
-          <!-- Extra fields for Google Search mode (hidden by default) -->
-          <div class="form-row search-extra-fields" id="search-extra-fields" style="display: none;">
-            <div class="form-group">
-              <label class="form-label" for="search-platform">📱 Target Platform</label>
-              <select class="form-input" id="search-platform" name="platform">
-                <option value="instagram.com">Instagram (instagram.com)</option>
-                <option value="facebook.com">Facebook (facebook.com)</option>
-                <option value="tiktok.com">TikTok (tiktok.com)</option>
-                <option value="x.com">Twitter/X (x.com)</option>
-                <option value="linkedin.com">LinkedIn (linkedin.com)</option>
-                <option value="custom">Custom Site...</option>
-              </select>
-              <span class="form-hint">Social media platform to target</span>
-              <input
-                type="text"
-                class="form-input"
-                id="search-platform-custom"
-                placeholder="e.g. youtube.com, kaskus.co.id"
-                style="display: none; margin-top: var(--space-2);"
-                autocomplete="off"
-              >
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="search-contact">📞 Contact Prefix</label>
-              <input
-                type="text"
-                class="form-input"
-                id="search-contact"
-                name="contactPrefix"
-                value="whatsapp"
-                placeholder="e.g. whatsapp, wa.me, telp"
-                autocomplete="off"
-              >
-              <span class="form-hint">Pattern to look for contact numbers</span>
-            </div>
+          <div class="m-feature-card">
+            <div class="a-feature-icon"><i data-lucide="zap"></i></div>
+            <div class="a-feature-title">Live Progress</div>
+            <div class="a-feature-desc">Watch live progress logs and status.</div>
           </div>
-
-          <div class="slider-group">
-            <div class="slider-header">
-              <label class="form-label" for="max-results">📋 Maximum Results</label>
-              <span class="slider-value" id="slider-value">40</span>
-            </div>
-            <input
-              type="range"
-              class="form-slider"
-              id="max-results"
-              name="maxResults"
-              min="5"
-              max="500"
-              value="40"
-              step="5"
-            >
-            <div style="display:flex; justify-content:space-between;">
-              <span class="form-hint">5</span>
-              <span class="form-hint">500</span>
-            </div>
+          <div class="m-feature-card">
+            <div class="a-feature-icon"><i data-lucide="download"></i></div>
+            <div class="a-feature-title">Basket Export</div>
+            <div class="a-feature-desc">Collect leads and export from your basket.</div>
           </div>
+        </section>
 
-          <div class="form-actions">
-            <button type="submit" class="btn btn-primary" id="btn-scrape">
-              <span id="btn-text">🚀 Start Scraping</span>
-              <div class="spinner" id="btn-spinner" style="display:none;"></div>
+        <!-- Search Card Panel -->
+        <section class="o-panel" id="search-card">
+          <!-- Segmented Control Mode Selector -->
+          <div class="m-segmented-control">
+            <button type="button" class="a-segment-btn active" id="mode-maps-btn" data-mode="maps">
+              <i data-lucide="map" class="icon-sm"></i> Google Maps
+            </button>
+            <button type="button" class="a-segment-btn" id="mode-search-btn" data-mode="search">
+              <i data-lucide="globe" class="icon-sm"></i> Google Search
             </button>
           </div>
-        </form>
-      </section>
 
-      <!-- Progress Section -->
-      <section class="progress-section" id="progress-section">
-        <div class="progress-card">
-          <div class="progress-header">
-            <div class="progress-title">
-              <span class="status-dot" id="status-dot"></span>
+          <form class="o-search-form" id="search-form">
+            <input type="hidden" id="search-mode" name="mode" value="maps">
+
+            <div class="m-form-row">
+              <div class="m-form-group">
+                <label class="a-form-label" for="search-query" id="label-query">
+                  <i data-lucide="search" class="icon-inline"></i> Business Keyword
+                </label>
+                <input
+                  type="text"
+                  class="a-form-input"
+                  id="search-query"
+                  name="query"
+                  placeholder="e.g. kedai kopi, esteh, toko kelontong"
+                  required
+                  autocomplete="off"
+                >
+                <span class="a-form-hint" id="hint-query">What type of business are you looking for?</span>
+              </div>
+              <div class="m-form-group">
+                <label class="a-form-label" for="search-location">
+                  <i data-lucide="map-pin" class="icon-inline"></i> Location
+                </label>
+                <input
+                  type="text"
+                  class="a-form-input"
+                  id="search-location"
+                  name="location"
+                  placeholder="e.g. Jakarta Selatan, Bandung, Surabaya"
+                  required
+                  autocomplete="off"
+                >
+                <span class="a-form-hint">City, area, or specific neighborhood</span>
+              </div>
+            </div>
+
+            <!-- Extra fields for Google Search mode (hidden by default) -->
+            <div class="m-form-row search-extra-fields" id="search-extra-fields" style="display: none;">
+              <div class="m-form-group">
+                <label class="a-form-label" for="search-platform">
+                  <i data-lucide="smartphone" class="icon-inline"></i> Target Platform
+                </label>
+                <select class="a-form-input" id="search-platform" name="platform">
+                  <option value="instagram.com">Instagram (instagram.com)</option>
+                  <option value="facebook.com">Facebook (facebook.com)</option>
+                  <option value="tiktok.com">TikTok (tiktok.com)</option>
+                  <option value="x.com">Twitter/X (x.com)</option>
+                  <option value="linkedin.com">LinkedIn (linkedin.com)</option>
+                  <option value="custom">Custom Site...</option>
+                </select>
+                <span class="a-form-hint">Social media platform to target</span>
+                <input
+                  type="text"
+                  class="a-form-input"
+                  id="search-platform-custom"
+                  placeholder="e.g. youtube.com, kaskus.co.id"
+                  style="display: none; margin-top: var(--space-2);"
+                  autocomplete="off"
+                >
+              </div>
+              <div class="m-form-group">
+                <label class="a-form-label" for="search-contact">
+                  <i data-lucide="phone" class="icon-inline"></i> Contact Prefix
+                </label>
+                <input
+                  type="text"
+                  class="a-form-input"
+                  id="search-contact"
+                  name="contactPrefix"
+                  value="whatsapp"
+                  placeholder="e.g. whatsapp, wa.me, telp"
+                  autocomplete="off"
+                >
+                <span class="a-form-hint">Pattern to look for contact numbers</span>
+              </div>
+            </div>
+
+            <div class="m-form-group">
+              <div class="m-slider-header">
+                <label class="a-form-label" for="max-results">
+                  <i data-lucide="sliders" class="icon-inline"></i> Maximum Results
+                </label>
+                <span class="a-slider-value" id="slider-value">40</span>
+              </div>
+              <input
+                type="range"
+                class="a-form-slider"
+                id="max-results"
+                name="maxResults"
+                min="5"
+                max="500"
+                value="40"
+                step="5"
+              >
+              <div style="display:flex; justify-content:space-between; margin-top: 4px;">
+                <span class="a-form-hint">5</span>
+                <span class="a-form-hint">500</span>
+              </div>
+            </div>
+
+            <div class="m-form-actions">
+              <button type="submit" class="a-btn a-btn-primary" id="btn-scrape">
+                <span id="btn-text"><i data-lucide="play" class="icon-sm"></i> Start Scraping</span>
+                <div class="a-spinner" id="btn-spinner" style="display:none;"></div>
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <!-- Progress Panel -->
+        <section class="o-panel progress-section" id="progress-section">
+          <div class="m-progress-header">
+            <div class="m-progress-title">
+              <span class="a-status-dot" id="status-dot"></span>
               <span id="progress-status-text">Scraping in progress...</span>
             </div>
-            <div class="progress-percent" id="progress-percent">0%</div>
+            <div class="a-progress-percent" id="progress-percent">0%</div>
           </div>
 
-          <div class="progress-bar-container">
-            <div class="progress-bar" id="progress-bar"></div>
+          <div class="m-progress-bar-container">
+            <div class="a-progress-bar" id="progress-bar"></div>
           </div>
 
-          <div class="progress-logs" id="progress-logs">
+          <div class="o-progress-logs" id="progress-logs">
             <!-- Log entries will be inserted here -->
           </div>
 
-          <div class="progress-stats">
-            <div class="stat-item">
-              <div class="stat-value" id="stat-found">0</div>
-              <div class="stat-label">Found</div>
+          <div class="o-progress-stats">
+            <div class="m-stat-item">
+              <div class="a-stat-value" id="stat-found">0</div>
+              <div class="a-stat-label">Found</div>
             </div>
-            <div class="stat-item">
-              <div class="stat-value" id="stat-query">—</div>
-              <div class="stat-label">Query</div>
+            <div class="m-stat-item">
+              <div class="a-stat-value" id="stat-query">—</div>
+              <div class="a-stat-label">Query</div>
             </div>
-            <div class="stat-item">
-              <div class="stat-value" id="stat-location">—</div>
-              <div class="stat-label">Location</div>
+            <div class="m-stat-item">
+              <div class="a-stat-value" id="stat-location">—</div>
+              <div class="a-stat-label">Location</div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <!-- Results Section -->
-      <section class="results-section" id="results-section">
-        <div class="results-header">
-          <h2 class="results-title">
-            Results <span class="results-count" id="results-count"></span>
-          </h2>
-          <div class="results-actions">
-            <button class="btn btn-primary btn-sm" id="btn-save-all-basket" style="background: var(--color-accent-light); color: var(--color-accent); box-shadow: none;" disabled>
-              📥 Save All to Basket
-            </button>
-            <button class="btn btn-secondary btn-sm" id="btn-export-csv" disabled>
-              📄 Export CSV
-            </button>
-            <button class="btn btn-secondary btn-sm" id="btn-export-excel" disabled>
-              📊 Export Excel
-            </button>
+        <!-- Current Scraping Results Table Panel -->
+        <section class="o-panel results-section" id="results-section">
+          <div class="m-panel-header">
+            <h2 class="a-panel-title">
+              Active Search Results <span class="a-badge" id="results-count"></span>
+            </h2>
+            <div class="m-panel-actions">
+              <button class="a-btn a-btn-secondary a-btn-accent" id="btn-save-all-basket" disabled>
+                <i data-lucide="plus-circle" class="icon-sm"></i> Save All to Basket
+              </button>
+              <button class="a-btn a-btn-secondary" id="btn-export-csv" disabled>
+                <i data-lucide="file-spreadsheet" class="icon-sm"></i> Export CSV
+              </button>
+              <button class="a-btn a-btn-secondary" id="btn-export-excel" disabled>
+                <i data-lucide="file-spreadsheet" class="icon-sm"></i> Export Excel
+              </button>
+            </div>
           </div>
-        </div>
-        <div class="table-container">
-          <div class="table-scroll">
-            <table class="results-table" id="results-table">
-              <thead id="results-thead">
-                <tr>
-                  <th data-sort="index">No <span class="sort-icon">↕</span></th>
-                  <th data-sort="name">Business Name <span class="sort-icon">↕</span></th>
-                  <th data-sort="category">Category <span class="sort-icon">↕</span></th>
-                  <th data-sort="rating">Rating <span class="sort-icon">↕</span></th>
-                  <th data-sort="reviewCount">Reviews <span class="sort-icon">↕</span></th>
-                  <th data-sort="address">Address <span class="sort-icon">↕</span></th>
-                  <th data-sort="phone">Phone <span class="sort-icon">↕</span></th>
-                  <th>Website</th>
-                  <th>Maps</th>
-                </tr>
-              </thead>
-              <tbody id="results-tbody">
-                <!-- Results will be inserted here -->
-              </tbody>
-            </table>
+          
+          <div class="o-table-container">
+            <div class="o-table-scroll">
+              <table class="o-table" id="results-table">
+                <thead id="results-thead">
+                  <tr>
+                    <th data-sort="index">No <span class="a-sort-icon">↕</span></th>
+                    <th data-sort="name">Business Name <span class="a-sort-icon">↕</span></th>
+                    <th data-sort="category">Category <span class="a-sort-icon">↕</span></th>
+                    <th data-sort="rating">Rating <span class="a-sort-icon">↕</span></th>
+                    <th data-sort="reviewCount">Reviews <span class="a-sort-icon">↕</span></th>
+                    <th data-sort="address">Address <span class="a-sort-icon">↕</span></th>
+                    <th data-sort="phone">Phone <span class="a-sort-icon">↕</span></th>
+                    <th>Website</th>
+                    <th>Maps</th>
+                  </tr>
+                </thead>
+                <tbody id="results-tbody">
+                  <!-- Results will be inserted here -->
+                </tbody>
+              </table>
+            </div>
+            <div class="m-empty-state" id="empty-state" style="display:none;">
+              <div class="a-empty-icon"><i data-lucide="search"></i></div>
+              <div class="a-empty-title">No results yet</div>
+              <div class="a-empty-text">Start a search to see business data appear here.</div>
+            </div>
           </div>
-          <div class="empty-state" id="empty-state" style="display:none;">
-            <div class="empty-icon">🔍</div>
-            <div class="empty-title">No results yet</div>
-            <div class="empty-text">Start a search to see business data appear here.</div>
-          </div>
-        </div>
-      </section>
+        </section>
+      </div>
 
-      <!-- Saved Leads Basket Section -->
-      <section class="results-section active" id="basket-section" style="margin-top: var(--space-8);">
-        <div class="results-header">
-          <h2 class="results-title">
-            Saved Leads Basket 🧺 <span class="results-count" id="basket-count">(0)</span>
-          </h2>
-          <div class="results-actions">
-            <button class="btn btn-secondary btn-sm" id="btn-basket-export-csv" disabled>
-              📄 Export Basket CSV
-            </button>
-            <button class="btn btn-secondary btn-sm" id="btn-basket-export-excel" disabled>
-              📊 Export Basket Excel
-            </button>
-            <button class="btn btn-secondary btn-sm" id="btn-basket-clear" style="border-color: var(--color-error); color: var(--color-error);" disabled>
-              🗑️ Clear Basket
-            </button>
+      <!-- ==========================================
+           VIEW 2: SAVED LEADS BASKET PANEL
+           ========================================== -->
+      <div class="view-panel" id="view-basket">
+        <section class="o-panel active">
+          <div class="m-panel-header">
+            <h2 class="a-panel-title">
+              Saved Leads Basket <span class="a-badge" id="basket-count">(0)</span>
+            </h2>
+            <div class="m-panel-actions">
+              <button class="a-btn a-btn-primary" id="btn-basket-export-csv" disabled>
+                <i data-lucide="file-spreadsheet" class="icon-sm"></i> Export Basket CSV
+              </button>
+              <button class="a-btn a-btn-primary" id="btn-basket-export-excel" disabled>
+                <i data-lucide="file-spreadsheet" class="icon-sm"></i> Export Basket Excel
+              </button>
+              <button class="a-btn a-btn-danger" id="btn-basket-clear" disabled>
+                <i data-lucide="trash-2" class="icon-sm"></i> Clear Basket
+              </button>
+            </div>
           </div>
-        </div>
-        <div class="table-container">
-          <div class="table-scroll">
-            <table class="results-table" id="basket-table">
-              <thead>
-                <tr>
-                  <th style="width: 50px;">No</th>
-                  <th>Nama / Judul</th>
-                  <th>Kategori / Platform</th>
-                  <th>Telepon</th>
-                  <th>Alamat / Snippet</th>
-                  <th>Sumber</th>
-                  <th>Link</th>
-                  <th style="width: 80px; text-align: center;">Aksi</th>
-                </tr>
-              </thead>
-              <tbody id="basket-tbody">
-                <!-- Basket items will be inserted here -->
-              </tbody>
-            </table>
-          </div>
-          <div class="empty-state" id="basket-empty-state">
-            <div class="empty-icon">🧺</div>
-            <div class="empty-title">Basket is empty</div>
-            <div class="empty-text">Save leads from your active results above to build up a list here.</div>
-          </div>
-        </div>
-      </section>
 
-    </div>
-  </main>
+          <div id="basket-groups-container">
+            <!-- Grouped tables will be inserted here dynamically -->
+          </div>
+          <div class="m-empty-state" id="basket-empty-state" style="display: none;">
+            <div class="a-empty-icon"><i data-lucide="shopping-basket"></i></div>
+            <div class="a-empty-title">Basket is empty</div>
+            <div class="a-empty-text">Save leads from your active results in the Scraper Panel to build your list.</div>
+          </div>
+        </section>
+      </div>
 
-  <!-- Footer -->
-  <footer class="footer">
-    <div class="container">
-      <p>ScrapMap — Google Maps Business Data Extractor</p>
-      <p style="margin-top:4px;">Built with Node.js, Playwright & ❤️ • For research purposes only</p>
-    </div>
-  </footer>
+      <!-- ==========================================
+           VIEW 3: CONFIGURATION PANEL
+           ========================================== -->
+      <div class="view-panel" id="view-config">
+        <section class="o-panel active">
+          <div class="m-panel-header">
+            <h2 class="a-panel-title">
+              <i data-lucide="settings" class="icon-accent"></i> Export Configuration
+            </h2>
+            <p style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">
+              Choose which columns to include in exported CSV and Excel files. Settings are saved automatically.
+            </p>
+          </div>
+
+          <div class="o-config-columns-grid">
+            <!-- Google Maps Config -->
+            <div class="o-config-card">
+              <h3 class="o-config-card-title">
+                <i data-lucide="map" class="icon-sm"></i> Google Maps Columns
+              </h3>
+              <div class="m-checkbox-list" id="config-maps-columns">
+                <label class="a-checkbox-label">
+                  <input type="checkbox" class="a-checkbox-input" value="No" checked>
+                  <span>No</span>
+                </label>
+                <label class="a-checkbox-label">
+                  <input type="checkbox" class="a-checkbox-input" value="Nama Bisnis" checked>
+                  <span>Nama Bisnis</span>
+                </label>
+                <label class="a-checkbox-label">
+                  <input type="checkbox" class="a-checkbox-input" value="Kategori" checked>
+                  <span>Kategori</span>
+                </label>
+                <label class="a-checkbox-label">
+                  <input type="checkbox" class="a-checkbox-input" value="Rating" checked>
+                  <span>Rating</span>
+                </label>
+                <label class="a-checkbox-label">
+                  <input type="checkbox" class="a-checkbox-input" value="Jumlah Review" checked>
+                  <span>Jumlah Review</span>
+                </label>
+                <label class="a-checkbox-label">
+                  <input type="checkbox" class="a-checkbox-input" value="Alamat" checked>
+                  <span>Alamat</span>
+                </label>
+                <label class="a-checkbox-label">
+                  <input type="checkbox" class="a-checkbox-input" value="Telepon" checked>
+                  <span>Telepon</span>
+                </label>
+                <label class="a-checkbox-label">
+                  <input type="checkbox" class="a-checkbox-input" value="Website" checked>
+                  <span>Website</span>
+                </label>
+                <label class="a-checkbox-label">
+                  <input type="checkbox" class="a-checkbox-input" value="Plus Code" checked>
+                  <span>Plus Code</span>
+                </label>
+                <label class="a-checkbox-label">
+                  <input type="checkbox" class="a-checkbox-input" value="Jam Operasional" checked>
+                  <span>Jam Operasional</span>
+                </label>
+                <label class="a-checkbox-label">
+                  <input type="checkbox" class="a-checkbox-input" value="Latitude" checked>
+                  <span>Latitude</span>
+                </label>
+                <label class="a-checkbox-label">
+                  <input type="checkbox" class="a-checkbox-input" value="Longitude" checked>
+                  <span>Longitude</span>
+                </label>
+                <label class="a-checkbox-label">
+                  <input type="checkbox" class="a-checkbox-input" value="Google Maps URL" checked>
+                  <span>Google Maps URL</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Google Search Config -->
+            <div class="o-config-card">
+              <h3 class="o-config-card-title">
+                <i data-lucide="globe" class="icon-sm"></i> Google Search Columns
+              </h3>
+              <div class="m-checkbox-list" id="config-search-columns">
+                <label class="a-checkbox-label">
+                  <input type="checkbox" class="a-checkbox-input" value="No" checked>
+                  <span>No</span>
+                </label>
+                <label class="a-checkbox-label">
+                  <input type="checkbox" class="a-checkbox-input" value="Judul Halaman" checked>
+                  <span>Judul Halaman</span>
+                </label>
+                <label class="a-checkbox-label">
+                  <input type="checkbox" class="a-checkbox-input" value="Platform" checked>
+                  <span>Platform</span>
+                </label>
+                <label class="a-checkbox-label">
+                  <input type="checkbox" class="a-checkbox-input" value="Link" checked>
+                  <span>Link</span>
+                </label>
+                <label class="a-checkbox-label">
+                  <input type="checkbox" class="a-checkbox-input" value="Telepon" checked>
+                  <span>Telepon</span>
+                </label>
+                <label class="a-checkbox-label">
+                  <input type="checkbox" class="a-checkbox-input" value="Snippet" checked>
+                  <span>Snippet</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Leads Basket Config -->
+            <div class="o-config-card">
+              <h3 class="o-config-card-title">
+                <i data-lucide="shopping-basket" class="icon-sm"></i> Leads Basket Columns
+              </h3>
+              <div class="m-checkbox-list" id="config-basket-columns">
+                <label class="a-checkbox-label">
+                  <input type="checkbox" class="a-checkbox-input" value="No" checked>
+                  <span>No</span>
+                </label>
+                <label class="a-checkbox-label">
+                  <input type="checkbox" class="a-checkbox-input" value="Nama/Judul" checked>
+                  <span>Nama/Judul</span>
+                </label>
+                <label class="a-checkbox-label">
+                  <input type="checkbox" class="a-checkbox-input" value="Kategori/Platform" checked>
+                  <span>Kategori/Platform</span>
+                </label>
+                <label class="a-checkbox-label">
+                  <input type="checkbox" class="a-checkbox-input" value="Telepon" checked>
+                  <span>Telepon</span>
+                </label>
+                <label class="a-checkbox-label">
+                  <input type="checkbox" class="a-checkbox-input" value="Alamat/Snippet" checked>
+                  <span>Alamat/Snippet</span>
+                </label>
+                <label class="a-checkbox-label">
+                  <input type="checkbox" class="a-checkbox-input" value="Sumber" checked>
+                  <span>Sumber</span>
+                </label>
+                <label class="a-checkbox-label">
+                  <input type="checkbox" class="a-checkbox-input" value="Link" checked>
+                  <span>Link</span>
+                </label>
+                <label class="a-checkbox-label">
+                  <input type="checkbox" class="a-checkbox-input" value="Tanggal Disimpan" checked>
+                  <span>Tanggal Disimpan</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Footer -->
+      <footer class="o-footer">
+        <p>Scraperis — Extract Business Data from Scraperis</p>
+        <p style="margin-top:4px;">Built with Node.js, Playwright & ❤️ • For research purposes only</p>
+      </footer>
+
+    </main>
+  </div>
 
   <!-- Toast Container -->
   <div class="toast-container" id="toast-container"></div>
 
+  <!-- Lucide Library -->
+  <script src="/js/lucide.js"></script>
+  <script>
+    // Initialize Lucide Icons on load
+    lucide.createIcons();
+  </script>
   <script src="/js/app.js"></script>
 </body>
 </html>

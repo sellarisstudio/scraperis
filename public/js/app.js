@@ -51,7 +51,7 @@
   const btnBasketExportCsv = document.getElementById('btn-basket-export-csv');
   const btnBasketExportExcel = document.getElementById('btn-basket-export-excel');
   const btnBasketClear = document.getElementById('btn-basket-clear');
-  const basketTbody = document.getElementById('basket-tbody');
+  const basketGroupsContainer = document.getElementById('basket-groups-container');
   const basketCount = document.getElementById('basket-count');
   const basketEmptyState = document.getElementById('basket-empty-state');
 
@@ -69,10 +69,121 @@
   let savedLeads = [];
 
   try {
-    savedLeads = JSON.parse(localStorage.getItem('scrapmap_basket')) || [];
+    savedLeads = JSON.parse(localStorage.getItem('scraperis_basket') || localStorage.getItem('scrapmap_basket')) || [];
   } catch (err) {
     savedLeads = [];
   }
+
+  // ========================
+  // Sidebar View Switcher
+  // ========================
+  const navScraperBtn = document.getElementById('nav-scraper-btn');
+  const navBasketBtn = document.getElementById('nav-basket-btn');
+  const navConfigBtn = document.getElementById('nav-config-btn');
+  const viewScraper = document.getElementById('view-scraper');
+  const viewBasket = document.getElementById('view-basket');
+  const viewConfig = document.getElementById('view-config');
+
+  navScraperBtn.addEventListener('click', () => {
+    navScraperBtn.classList.add('active');
+    navBasketBtn.classList.remove('active');
+    navConfigBtn.classList.remove('active');
+    viewScraper.classList.add('active');
+    viewBasket.classList.remove('active');
+    viewConfig.classList.remove('active');
+  });
+
+  navBasketBtn.addEventListener('click', () => {
+    navBasketBtn.classList.add('active');
+    navScraperBtn.classList.remove('active');
+    navConfigBtn.classList.remove('active');
+    viewBasket.classList.add('active');
+    viewScraper.classList.remove('active');
+    viewConfig.classList.remove('active');
+  });
+
+  navConfigBtn.addEventListener('click', () => {
+    navConfigBtn.classList.add('active');
+    navScraperBtn.classList.remove('active');
+    navBasketBtn.classList.remove('active');
+    viewConfig.classList.add('active');
+    viewScraper.classList.remove('active');
+    viewBasket.classList.remove('active');
+  });
+
+  // ========================
+  // Configuration State
+  // ========================
+  function saveConfig() {
+    const mapsCols = [];
+    document.querySelectorAll('#config-maps-columns .a-checkbox-input').forEach(cb => {
+      if (cb.checked) mapsCols.push(cb.value);
+    });
+    const searchCols = [];
+    document.querySelectorAll('#config-search-columns .a-checkbox-input').forEach(cb => {
+      if (cb.checked) searchCols.push(cb.value);
+    });
+    const basketCols = [];
+    document.querySelectorAll('#config-basket-columns .a-checkbox-input').forEach(cb => {
+      if (cb.checked) basketCols.push(cb.value);
+    });
+
+    localStorage.setItem('scraperis_config_maps', JSON.stringify(mapsCols));
+    localStorage.setItem('scraperis_config_search', JSON.stringify(searchCols));
+    localStorage.setItem('scraperis_config_basket', JSON.stringify(basketCols));
+  }
+
+  function loadConfig() {
+    try {
+      const mapsSaved = localStorage.getItem('scraperis_config_maps') || localStorage.getItem('scrapmap_config_maps');
+      if (mapsSaved) {
+        const mapsCols = JSON.parse(mapsSaved);
+        document.querySelectorAll('#config-maps-columns .a-checkbox-input').forEach(cb => {
+          cb.checked = mapsCols.includes(cb.value);
+        });
+      }
+
+      const searchSaved = localStorage.getItem('scraperis_config_search') || localStorage.getItem('scrapmap_config_search');
+      if (searchSaved) {
+        const searchCols = JSON.parse(searchSaved);
+        document.querySelectorAll('#config-search-columns .a-checkbox-input').forEach(cb => {
+          cb.checked = searchCols.includes(cb.value);
+        });
+      }
+
+      const basketSaved = localStorage.getItem('scraperis_config_basket') || localStorage.getItem('scrapmap_config_basket');
+      if (basketSaved) {
+        const basketCols = JSON.parse(basketSaved);
+        document.querySelectorAll('#config-basket-columns .a-checkbox-input').forEach(cb => {
+          cb.checked = basketCols.includes(cb.value);
+        });
+      }
+    } catch (err) {
+      console.error('Error loading config:', err);
+    }
+  }
+
+  function getCheckedColumns(mode) {
+    let selector = '#config-maps-columns';
+    if (mode === 'search') {
+      selector = '#config-search-columns';
+    } else if (mode === 'basket') {
+      selector = '#config-basket-columns';
+    }
+    const cols = [];
+    document.querySelectorAll(`${selector} .a-checkbox-input`).forEach(cb => {
+      if (cb.checked) cols.push(cb.value);
+    });
+    return cols;
+  }
+
+  // Bind checkbox changes
+  document.querySelectorAll('.a-checkbox-input').forEach(cb => {
+    cb.addEventListener('change', saveConfig);
+  });
+
+  // Load config on startup
+  loadConfig();
 
   // ========================
   // Mode Selector Toggle
@@ -414,7 +525,7 @@
         <td class="cell-phone">${result.phone ? escapeHtml(result.phone) : ''}</td>
         <td class="cell-link">${result.url ? `<a href="${escapeAttr(result.url)}" target="_blank" rel="noopener">Open ↗</a>` : '—'}</td>
         <td class="cell-address" title="${escapeAttr(result.snippet)}">${escapeHtml(result.snippet || '—')}</td>
-        <td><button type="button" class="btn-delete save-lead-btn" style="color: var(--color-accent); border-color: var(--color-accent-light);">➕ Basket</button></td>
+        <td><button type="button" class="a-btn a-btn-accent save-lead-btn" style="padding: 2px 8px; font-size: var(--font-size-xs);"><i data-lucide="plus" class="icon-sm"></i> Basket</button></td>
       `;
     } else {
       tr.innerHTML = `
@@ -427,7 +538,7 @@
         <td class="cell-phone">${result.phone ? escapeHtml(result.phone) : ''}</td>
         <td class="cell-link">${result.website ? `<a href="${escapeAttr(result.website)}" target="_blank" rel="noopener">Visit ↗</a>` : '—'}</td>
         <td class="cell-link">${result.mapsUrl ? `<a href="${escapeAttr(result.mapsUrl)}" target="_blank" rel="noopener">Open ↗</a>` : '—'}</td>
-        <td><button type="button" class="btn-delete save-lead-btn" style="color: var(--color-accent); border-color: var(--color-accent-light);">➕ Basket</button></td>
+        <td><button type="button" class="a-btn a-btn-accent save-lead-btn" style="padding: 2px 8px; font-size: var(--font-size-xs);"><i data-lucide="plus" class="icon-sm"></i> Basket</button></td>
       `;
     }
 
@@ -439,6 +550,14 @@
     }
 
     resultsTbody.appendChild(tr);
+
+    // Dynamic rendering of Lucide icons in the row
+    if (window.lucide) {
+      window.lucide.createIcons({
+        nameAttr: 'data-lucide',
+        root: tr
+      });
+    }
 
     // Scroll table into view if many results
     if (results.length > 3) {
@@ -545,13 +664,15 @@
   // ========================
   btnExportCsv.addEventListener('click', () => {
     if (!currentJobId) return;
-    window.open(`/api/export/${currentJobId}/csv`, '_blank');
+    const cols = getCheckedColumns(activeScraperMode).join(',');
+    window.open(`/api/export/${currentJobId}/csv?columns=${encodeURIComponent(cols)}`, '_blank');
     showToast('CSV download started!', 'success');
   });
 
   btnExportExcel.addEventListener('click', () => {
     if (!currentJobId) return;
-    window.open(`/api/export/${currentJobId}/xlsx`, '_blank');
+    const cols = getCheckedColumns(activeScraperMode).join(',');
+    window.open(`/api/export/${currentJobId}/xlsx?columns=${encodeURIComponent(cols)}`, '_blank');
     showToast('Excel download started!', 'success');
   });
 
@@ -578,13 +699,24 @@
   // ========================
   function showToast(message, type = 'info') {
     const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
+    toast.className = `m-toast m-toast-${type}`;
 
-    const icon =
-      type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
-    toast.innerHTML = `<span>${icon}</span><span>${escapeHtml(message)}</span>`;
+    const iconName =
+      type === 'success' ? 'check-circle' : type === 'error' ? 'alert-triangle' : 'info';
+    
+    toast.innerHTML = `
+      <i data-lucide="${iconName}"></i>
+      <span>${escapeHtml(message)}</span>
+    `;
 
     toastContainer.appendChild(toast);
+
+    if (window.lucide) {
+      window.lucide.createIcons({
+        nameAttr: 'data-lucide',
+        root: toast
+      });
+    }
 
     // Auto-remove after 4 seconds
     setTimeout(() => {
@@ -636,7 +768,8 @@
       phone: lead.phone,
       address: lead.address || lead.snippet || '—',
       source: lead.mapsUrl ? 'Maps' : 'Search',
-      url: lead.mapsUrl || lead.website || lead.url || ''
+      url: lead.mapsUrl || lead.website || lead.url || '',
+      savedAt: new Date().toISOString()
     };
 
     const exists = savedLeads.some((item) => item.phone === basketItem.phone);
@@ -655,6 +788,7 @@
     if (results.length === 0) return;
 
     let addedCount = 0;
+    const now = new Date().toISOString();
     results.forEach((lead) => {
       if (!lead.phone) return;
 
@@ -664,7 +798,8 @@
         phone: lead.phone,
         address: lead.address || lead.snippet || '—',
         source: lead.mapsUrl ? 'Maps' : 'Search',
-        url: lead.mapsUrl || lead.website || lead.url || ''
+        url: lead.mapsUrl || lead.website || lead.url || '',
+        savedAt: now
       };
 
       const exists = savedLeads.some((item) => item.phone === basketItem.phone);
@@ -683,9 +818,42 @@
     }
   }
 
+  function formatDateGroup(dateString) {
+    if (!dateString || dateString === 'Sebelumnya') return 'Sebelumnya';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('id-ID', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch (e) {
+      return dateString;
+    }
+  }
+
+  function deleteGroupLeads(dateKey, dateLabel) {
+    if (confirm(`Yakin ingin menghapus semua lead dari grup "${dateLabel}"?`)) {
+      savedLeads = savedLeads.filter((item) => {
+        const itemKey = item.savedAt ? item.savedAt.substring(0, 10) : 'Sebelumnya';
+        return itemKey !== dateKey;
+      });
+      saveBasket();
+      renderBasketTable();
+      showToast(`Grup "${dateLabel}" berhasil dihapus.`, 'info');
+    }
+  }
+
   function renderBasketTable() {
-    basketTbody.innerHTML = '';
+    basketGroupsContainer.innerHTML = '';
     basketCount.textContent = `(${savedLeads.length})`;
+
+    const sidebarBadge = document.getElementById('sidebar-basket-badge');
+    if (sidebarBadge) {
+      sidebarBadge.textContent = savedLeads.length;
+      sidebarBadge.style.display = savedLeads.length > 0 ? 'inline-block' : 'none';
+    }
 
     if (savedLeads.length === 0) {
       basketEmptyState.style.display = 'block';
@@ -700,24 +868,108 @@
     btnBasketExportExcel.disabled = false;
     btnBasketClear.disabled = false;
 
-    savedLeads.forEach((item, index) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${index + 1}</td>
-        <td class="cell-name" title="${escapeAttr(item.name)}">${escapeHtml(item.name)}</td>
-        <td><span class="cell-category">${escapeHtml(item.category)}</span></td>
-        <td class="cell-phone">${escapeHtml(item.phone)}</td>
-        <td class="cell-address" title="${escapeAttr(item.address)}">${escapeHtml(item.address)}</td>
-        <td><span class="cell-category" style="background: var(--color-accent-light); color: var(--color-accent); font-weight:600;">${escapeHtml(item.source)}</span></td>
-        <td class="cell-link">${item.url ? `<a href="${escapeAttr(item.url)}" target="_blank" rel="noopener">Open ↗</a>` : '—'}</td>
-        <td style="text-align: center;"><button type="button" class="btn-delete remove-basket-btn">🗑️ Hapus</button></td>
+    // Group leads by savedAt date part (YYYY-MM-DD)
+    const groups = {};
+    savedLeads.forEach((item) => {
+      const dateKey = item.savedAt ? item.savedAt.substring(0, 10) : 'Sebelumnya';
+      if (!groups[dateKey]) {
+        groups[dateKey] = [];
+      }
+      groups[dateKey].push(item);
+    });
+
+    // Sort date keys descending (newest first)
+    const sortedKeys = Object.keys(groups).sort((a, b) => {
+      if (a === 'Sebelumnya') return 1;
+      if (b === 'Sebelumnya') return -1;
+      return b.localeCompare(a);
+    });
+
+    sortedKeys.forEach((dateKey) => {
+      const groupLeads = groups[dateKey];
+      const dateLabel = dateKey === 'Sebelumnya' ? 'Sebelumnya' : formatDateGroup(dateKey);
+
+      const groupDiv = document.createElement('div');
+      groupDiv.className = 'o-basket-group';
+      groupDiv.style.marginBottom = 'var(--space-6)';
+
+      groupDiv.innerHTML = `
+        <div class="m-basket-group-header" style="display: flex; justify-content: space-between; align-items: center; padding: var(--space-3) var(--space-4); background: var(--color-background); border: 1px solid var(--color-border); border-bottom: none; border-top-left-radius: var(--radius-md); border-top-right-radius: var(--radius-md); font-weight: 600; cursor: pointer; user-select: none;">
+          <span style="display: flex; align-items: center; gap: var(--space-2); color: var(--color-text-primary);">
+            <i data-lucide="chevron-down" class="group-collapse-icon icon-sm" style="transition: transform var(--transition-fast);"></i>
+            <i data-lucide="calendar" class="icon-accent icon-sm"></i>
+            <span>${escapeHtml(dateLabel)}</span>
+            <span class="a-badge" style="background: var(--color-accent-light); color: var(--color-accent); font-weight:600;">${groupLeads.length} Leads</span>
+          </span>
+          <div style="display: flex; align-items: center;" onclick="event.stopPropagation();">
+            <button type="button" class="a-btn a-btn-danger remove-group-btn" style="padding: 2px 8px; font-size: var(--font-size-xs);"><i data-lucide="trash-2" class="icon-sm"></i> Hapus Grup</button>
+          </div>
+        </div>
+        <div class="o-table-scroll" style="border-top-left-radius: 0; border-top-right-radius: 0;">
+          <table class="o-table">
+            <thead>
+              <tr>
+                <th style="width: 50px;">No</th>
+                <th>Nama / Judul</th>
+                <th>Kategori / Platform</th>
+                <th>Telepon</th>
+                <th>Alamat / Snippet</th>
+                <th>Sumber</th>
+                <th>Link</th>
+                <th style="width: 80px; text-align: center;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody class="basket-group-tbody"></tbody>
+          </table>
+        </div>
       `;
 
-      tr.querySelector('.remove-basket-btn').addEventListener('click', () => {
-        deleteBasketLead(item.phone);
+      const headerDiv = groupDiv.querySelector('.m-basket-group-header');
+      headerDiv.addEventListener('click', () => {
+        groupDiv.classList.toggle('collapsed');
+        const icon = headerDiv.querySelector('.group-collapse-icon');
+        if (groupDiv.classList.contains('collapsed')) {
+          icon.style.transform = 'rotate(-90deg)';
+        } else {
+          icon.style.transform = 'rotate(0deg)';
+        }
       });
 
-      basketTbody.appendChild(tr);
+      groupDiv.querySelector('.remove-group-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteGroupLeads(dateKey, dateLabel);
+      });
+
+      const actualTbody = groupDiv.querySelector('.basket-group-tbody');
+
+      groupLeads.forEach((item, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${index + 1}</td>
+          <td class="cell-name" title="${escapeAttr(item.name)}">${escapeHtml(item.name)}</td>
+          <td><span class="cell-category">${escapeHtml(item.category)}</span></td>
+          <td class="cell-phone">${escapeHtml(item.phone)}</td>
+          <td class="cell-address" title="${escapeAttr(item.address)}">${escapeHtml(item.address)}</td>
+          <td><span class="cell-category" style="background: var(--color-accent-light); color: var(--color-accent); font-weight:600;">${escapeHtml(item.source)}</span></td>
+          <td class="cell-link">${item.url ? `<a href="${escapeAttr(item.url)}" target="_blank" rel="noopener">Open ↗</a>` : '—'}</td>
+          <td style="text-align: center;"><button type="button" class="btn-delete remove-basket-btn" style="padding: 2px 8px;"><i data-lucide="trash-2" class="icon-sm"></i> Hapus</button></td>
+        `;
+
+        tr.querySelector('.remove-basket-btn').addEventListener('click', () => {
+          deleteBasketLead(item.phone);
+        });
+
+        actualTbody.appendChild(tr);
+      });
+
+      basketGroupsContainer.appendChild(groupDiv);
+
+      if (window.lucide) {
+        window.lucide.createIcons({
+          nameAttr: 'data-lucide',
+          root: groupDiv
+        });
+      }
     });
   }
 
@@ -738,7 +990,7 @@
   }
 
   function saveBasket() {
-    localStorage.setItem('scrapmap_basket', JSON.stringify(savedLeads));
+    localStorage.setItem('scraperis_basket', JSON.stringify(savedLeads));
   }
 
   async function exportBasket(format) {
@@ -746,10 +998,15 @@
     showToast('Generating export...', 'info');
 
     try {
+      const basketCols = getCheckedColumns('basket');
+
       const response = await fetch(`/api/export/basket/${format}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ leads: savedLeads })
+        body: JSON.stringify({ 
+          leads: savedLeads,
+          basketColumns: basketCols
+        })
       });
 
       if (!response.ok) {

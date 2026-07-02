@@ -35,7 +35,7 @@ app.listen(PORT, HOST, () => {
   console.log(`
   ╔══════════════════════════════════════════╗
   ║                                          ║
-  ║   🗺️  ScrapMap - Google Maps Scraper     ║
+  ║   🗺️  Scraperis - Scraper & Leads        ║
   ║                                          ║
   ║   Server running on:                     ║
   ║   http://${HOST}:${PORT}                     ║

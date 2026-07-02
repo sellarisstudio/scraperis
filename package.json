@@ -1,14 +1,21 @@
 {
-  "name": "scrapmap",
+  "name": "scraperis",
   "version": "1.0.0",
-  "description": "Google Maps Business Scraper - Extract business data from Google Maps",
-  "main": "server.js",
+  "description": "Scraperis - Extract Business Data from Scraperis",
+  "main": "main.js",
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
+    "electron:dev": "electron .",
+    "build:win": "electron-builder --win",
     "install-browser": "npx playwright install chromium --with-deps"
   },
-  "keywords": ["google-maps", "scraper", "playwright", "business-data"],
+  "keywords": [
+    "google-maps",
+    "scraper",
+    "playwright",
+    "business-data"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
@@ -19,5 +26,33 @@
     "playwright": "^1.52.0",
     "uuid": "^11.1.0",
     "xlsx": "^0.18.5"
+  },
+  "build": {
+    "appId": "com.sellarisstudio.scraperis",
+    "productName": "Scraperis",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "icon": "public/images/logo.png",
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "files": [
+      "**/*",
+      "!dist/**/*"
+    ],
+    "asar": false
+  },
+  "devDependencies": {
+    "electron": "^41.7.1",
+    "electron-builder": "^26.15.3"
   }
 }

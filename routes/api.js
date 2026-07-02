@@ -165,8 +165,10 @@ router.get('/export/:jobId/:format', (req, res) => {
     '_'
   );
 
+  const { columns } = req.query;
+
   // Clean results for export based on scraper mode
-  const exportData = job.mode === 'search'
+  let exportData = job.mode === 'search'
     ? job.results.map((r) => ({
         No: r.index,
         'Judul Halaman': r.title,
@@ -191,6 +193,42 @@ router.get('/export/:jobId/:format', (req, res) => {
         'Google Maps URL': r.mapsUrl,
       }));
 
+  // Filter columns if specified
+  if (columns) {
+    const activeCols = columns.split(',');
+    exportData = exportData.map((row) => {
+      const filtered = {};
+      activeCols.forEach((col) => {
+        if (col in row) {
+          filtered[col] = row[col];
+        }
+      });
+      return filtered;
+    });
+  }
+
+  const colWidths = {
+    // Maps
+    'No': 5,
+    'Nama Bisnis': 35,
+    'Kategori': 20,
+    'Rating': 8,
+    'Jumlah Review': 12,
+    'Alamat': 50,
+    'Telepon': 18,
+    'Website': 35,
+    'Plus Code': 15,
+    'Jam Operasional': 30,
+    'Latitude': 12,
+    'Longitude': 12,
+    'Google Maps URL': 50,
+    // Search
+    'Judul Halaman': 45,
+    'Platform': 20,
+    'Link': 50,
+    'Snippet': 75,
+  };
+
   if (format === 'csv') {
     try {
       const parser = new Parser();
@@ -212,33 +250,9 @@ router.get('/export/:jobId/:format', (req, res) => {
       const wb = XLSX.utils.book_new();
       const ws = XLSX.utils.json_to_sheet(exportData);
 
-      // Set column widths based on mode
-      if (job.mode === 'search') {
-        ws['!cols'] = [
-          { wch: 5 },  // No
-          { wch: 45 }, // Judul Halaman
-          { wch: 20 }, // Platform
-          { wch: 50 }, // Link
-          { wch: 20 }, // Telepon
-          { wch: 75 }, // Snippet
-        ];
-      } else {
-        ws['!cols'] = [
-          { wch: 5 },  // No
-          { wch: 35 }, // Nama
-          { wch: 20 }, // Kategori
-          { wch: 8 },  // Rating
-          { wch: 12 }, // Reviews
-          { wch: 50 }, // Alamat
-          { wch: 18 }, // Telepon
-          { wch: 35 }, // Website
-          { wch: 15 }, // Plus Code
-          { wch: 30 }, // Jam
-          { wch: 12 }, // Lat
-          { wch: 12 }, // Lng
-          { wch: 50 }, // URL
-        ];
-      }
+      // Set column widths dynamically based on active keys
+      const activeKeys = Object.keys(exportData[0] || {});
+      ws['!cols'] = activeKeys.map((key) => ({ wch: colWidths[key] || 15 }));
 
       XLSX.utils.book_append_sheet(wb, ws, 'Results');
       const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
@@ -288,7 +302,7 @@ router.delete('/scrape/:jobId', (req, res) => {
  */
 router.post('/export/basket/:format', (req, res) => {
   try {
-    const { leads } = req.body;
+    const { leads, basketColumns } = req.body;
     if (!leads || !Array.isArray(leads) || leads.length === 0) {
       return res.status(400).json({ error: 'No leads data to export' });
     }
@@ -297,15 +311,34 @@ router.post('/export/basket/:format', (req, res) => {
     const filename = `scrapmap_basket_${Date.now()}`;
 
     // Map basket fields to neat export columns
-    const exportData = leads.map((r, i) => ({
-      No: i + 1,
-      'Nama/Judul': r.name,
-      'Kategori/Platform': r.category,
-      Telepon: r.phone,
-      'Alamat/Snippet': r.address,
-      Sumber: r.source,
-      Link: r.url,
-    }));
+    let exportData = leads.map((r, i) => {
+      const formattedDate = r.savedAt 
+        ? new Date(r.savedAt).toLocaleString('id-ID')
+        : '—';
+      return {
+        No: i + 1,
+        'Nama/Judul': r.name,
+        'Kategori/Platform': r.category,
+        Telepon: r.phone,
+        'Alamat/Snippet': r.address,
+        Sumber: r.source,
+        Link: r.url,
+        'Tanggal Disimpan': formattedDate
+      };
+    });
+
+    // Filter columns if specified
+    if (basketColumns && Array.isArray(basketColumns)) {
+      exportData = exportData.map((row) => {
+        const filtered = {};
+        basketColumns.forEach((col) => {
+          if (col in row) {
+            filtered[col] = row[col];
+          }
+        });
+        return filtered;
+      });
+    }
 
     if (format === 'csv') {
       const parser = new Parser();
@@ -321,16 +354,21 @@ router.post('/export/basket/:format', (req, res) => {
       const wb = XLSX.utils.book_new();
       const ws = XLSX.utils.json_to_sheet(exportData);
 
-      // Set column widths
-      ws['!cols'] = [
-        { wch: 5 },  // No
-        { wch: 40 }, // Nama/Judul
-        { wch: 25 }, // Kategori/Platform
-        { wch: 20 }, // Telepon
-        { wch: 60 }, // Alamat/Snippet
-        { wch: 15 }, // Sumber
-        { wch: 60 }, // Link
-      ];
+      // Define default widths
+      const colWidths = {
+        'No': 5,
+        'Nama/Judul': 40,
+        'Kategori/Platform': 25,
+        'Telepon': 20,
+        'Alamat/Snippet': 60,
+        'Sumber': 15,
+        'Link': 60,
+        'Tanggal Disimpan': 22,
+      };
+
+      // Set column widths dynamically based on active keys
+      const activeKeys = Object.keys(exportData[0] || {});
+      ws['!cols'] = activeKeys.map((key) => ({ wch: colWidths[key] || 15 }));
 
       XLSX.utils.book_append_sheet(wb, ws, 'Saved Leads');
       const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
