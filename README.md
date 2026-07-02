@@ -1,7 +1,28 @@
-# Scraperis 🚀
-> **Automated Google Maps & Google Search Business Lead Extractor**
+<div align="center">
+  <img src="public/images/logo-full.png" alt="Scraperis Logo" width="350" style="margin-bottom: 20px;" />
 
-Scraperis is a powerful desktop application built with Electron, Node.js, Express, and Playwright. It enables users to automatically scrape, collect, and build a database of business leads (including name, category, rating, reviews, address, phone number, and website) from Google Maps and Google Search. 
+  # Scraperis 🚀
+  
+  **Automated Google Maps & Google Search Business Lead Extractor**
+
+  [![GitHub Downloads](https://img.shields.io/github/downloads/sellarisstudio/scraperis/total?style=for-the-badge&color=4169E1)](https://github.com/sellarisstudio/scraperis/releases)
+  [![GitHub Stars](https://img.shields.io/github/stars/sellarisstudio/scraperis?style=for-the-badge&color=FFD700)](https://github.com/sellarisstudio/scraperis/stargazers)
+  [![GitHub Forks](https://img.shields.io/github/forks/sellarisstudio/scraperis?style=for-the-badge&color=FF8C00)](https://github.com/sellarisstudio/scraperis/network/members)
+  [![Visitors](https://komarev.com/ghpvc/?username=sellarisstudio-scraperis&color=8A2BE2&style=for-the-badge&label=VISITORS)](https://github.com/sellarisstudio/scraperis)
+  [![License](https://img.shields.io/github/license/sellarisstudio/scraperis?style=for-the-badge&color=32CD32)](https://github.com/sellarisstudio/scraperis/blob/main/LICENSE)
+
+  <br/>
+
+  [![Playwright](https://img.shields.io/badge/Playwright-31C653?style=for-the-badge&logo=playwright&logoColor=white)](https://playwright.dev)
+  [![Electron](https://img.shields.io/badge/Electron-4784F6?style=for-the-badge&logo=electron&logoColor=white)](https://electronjs.org)
+  [![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org)
+  [![Express](https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com)
+
+</div>
+
+---
+
+Scraperis is a powerful desktop application built with Electron, Node.js, Express, and Playwright. It enables users to automatically scrape, collect, and build a database of business leads (including name, category, rating, reviews, address, phone number, and website) from Google Maps and Google Search.
 
 Features a modern glassmorphic web dashboard with real-time scraping progress, live execution logs (Server-Sent Events), a persistent **Leads Basket**, and exports to CSV/Excel.
 
