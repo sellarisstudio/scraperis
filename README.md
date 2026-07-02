@@ -26,6 +26,12 @@ Scraperis is a powerful desktop application built with Electron, Node.js, Expres
 
 Features a modern glassmorphic web dashboard with real-time scraping progress, live execution logs (Server-Sent Events), a persistent **Leads Basket**, and exports to CSV/Excel.
 
+<div align="center">
+  <h3>
+    <a href="https://github.com/sellarisstudio/scraperis/releases">📥 Download Latest Windows Installer (.exe)</a>
+  </h3>
+</div>
+
 ---
 
 ## ✨ Key Features
@@ -96,13 +102,13 @@ This script runs `electron-builder` to package the application. The compiled ins
 
 ## 📥 How to Install and Run the `.exe` Release (For End Users)
 
-If you just want to use the application without setting up Node.js, you can download the ready-to-run `.exe` installer.
+If you just want to use the application without setting up Node.js, you can download the ready-to-run `.exe` installer directly from the [GitHub Releases page](https://github.com/sellarisstudio/scraperis/releases).
 
 ### Steps:
 1. **Go to Releases**:
-   Navigate to the **Releases** section on the right side of this GitHub repository page.
+   Go directly to the [GitHub Releases page](https://github.com/sellarisstudio/scraperis/releases).
 2. **Download the Installer**:
-   Under the latest release, click on **Assets** and download `Scraperis Setup <version>.exe`.
+   Under the latest release, click on **Assets** and download the installer file (e.g. `Scraperis Setup <version>.exe`).
 3. **Run the Installer**:
    - Double-click the downloaded `.exe` file.
    - If Windows Defender shows a warning (SmartScreen), click **More Info** and then **Run Anyway** (this occurs because the executable is not signed with a paid developer certificate).
