@@ -9,7 +9,7 @@
   [![GitHub Stars](https://img.shields.io/github/stars/sellarisstudio/scraperis?style=for-the-badge&color=FFD700)](https://github.com/sellarisstudio/scraperis/stargazers)
   [![GitHub Forks](https://img.shields.io/github/forks/sellarisstudio/scraperis?style=for-the-badge&color=FF8C00)](https://github.com/sellarisstudio/scraperis/network/members)
   [![Visitors](https://komarev.com/ghpvc/?username=sellarisstudio-scraperis&color=8A2BE2&style=for-the-badge&label=VISITORS)](https://github.com/sellarisstudio/scraperis)
-  [![License](https://img.shields.io/github/license/sellarisstudio/scraperis?style=for-the-badge&color=32CD32)](https://github.com/sellarisstudio/scraperis/blob/main/LICENSE)
+  [![License](https://img.shields.io/badge/License-MIT-32CD32?style=for-the-badge)](https://github.com/sellarisstudio/scraperis/blob/main/LICENSE)
 
   <br/>
 
