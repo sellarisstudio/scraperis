@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const jobManager = require('../scraper/jobManager');
 const { scrapeGoogleMaps } = require('../scraper/mapsScraper');
-const { scrapeGoogleSearch } = require('../scraper/searchScraper');
+const { scrapeSearch } = require('../scraper/searchScraper');
 const { Parser } = require('json2csv');
 const XLSX = require('xlsx');
 
@@ -13,7 +13,7 @@ const MAX_CONCURRENT = parseInt(process.env.MAX_CONCURRENT_JOBS) || 2;
  */
 router.post('/scrape', (req, res) => {
   try {
-    const { query, location, maxResults, mode, platform, contactPrefix } = req.body;
+    const { query, location, maxResults, mode, platform, contactPrefix, searchTarget, serpApiKey, headless, captchaTimeout, usePersistent } = req.body;
 
     if (!query || !location) {
       return res.status(400).json({
@@ -32,18 +32,24 @@ router.post('/scrape', (req, res) => {
     const max = Math.min(parseInt(maxResults) || 40, 500);
     const job = jobManager.createJob(query, location, max, activeMode);
 
+    const isHeadless = headless !== undefined ? !!headless : (process.env.BROWSER_HEADLESS !== 'false');
+    const activeCaptchaTimeout = parseInt(captchaTimeout) || 60;
+    const activeUsePersistent = usePersistent !== undefined ? !!usePersistent : true;
+
     if (activeMode === 'search') {
       const activePlatform = platform || 'instagram.com';
       const activeContactPrefix = contactPrefix || 'whatsapp';
 
-      // Start google search scraping
-      scrapeGoogleSearch(job.id, activePlatform, query, location, activeContactPrefix, max).catch((err) => {
+      const activeSearchTarget = searchTarget || 'google';
+
+      // Start search scraping (Google, DuckDuckGo, Bing, Yahoo, SerpApi)
+      scrapeSearch(job.id, activePlatform, query, location, activeContactPrefix, max, activeSearchTarget, serpApiKey, isHeadless, activeCaptchaTimeout, activeUsePersistent).catch((err) => {
         console.error('Unhandled Search scraper error:', err);
         jobManager.setError(job.id, err.message);
       });
     } else {
       // Start google maps scraping
-      scrapeGoogleMaps(job.id, query, location, max).catch((err) => {
+      scrapeGoogleMaps(job.id, query, location, max, isHeadless, activeCaptchaTimeout, activeUsePersistent).catch((err) => {
         console.error('Unhandled Maps scraper error:', err);
         jobManager.setError(job.id, err.message);
       });
@@ -171,23 +177,23 @@ router.get('/export/:jobId/:format', (req, res) => {
   let exportData = job.mode === 'search'
     ? job.results.map((r) => ({
         No: r.index,
-        'Judul Halaman': r.title,
+        'Page Title': r.title,
         Platform: r.platform,
         Link: r.url,
-        Telepon: r.phone,
+        Phone: r.phone,
         Snippet: r.snippet,
       }))
     : job.results.map((r) => ({
         No: r.index,
-        'Nama Bisnis': r.name,
-        Kategori: r.category,
+        'Business Name': r.name,
+        Category: r.category,
         Rating: r.rating,
-        'Jumlah Review': r.reviewCount,
-        Alamat: r.address,
-        Telepon: r.phone,
+        'Reviews Count': r.reviewCount,
+        Address: r.address,
+        Phone: r.phone,
         Website: r.website,
         'Plus Code': r.plusCode,
-        'Jam Operasional': r.hours,
+        'Opening Hours': r.hours,
         Latitude: r.lat,
         Longitude: r.lng,
         'Google Maps URL': r.mapsUrl,
@@ -210,20 +216,20 @@ router.get('/export/:jobId/:format', (req, res) => {
   const colWidths = {
     // Maps
     'No': 5,
-    'Nama Bisnis': 35,
-    'Kategori': 20,
+    'Business Name': 35,
+    'Category': 20,
     'Rating': 8,
-    'Jumlah Review': 12,
-    'Alamat': 50,
-    'Telepon': 18,
+    'Reviews Count': 12,
+    'Address': 50,
+    'Phone': 18,
     'Website': 35,
     'Plus Code': 15,
-    'Jam Operasional': 30,
+    'Opening Hours': 30,
     'Latitude': 12,
     'Longitude': 12,
     'Google Maps URL': 50,
     // Search
-    'Judul Halaman': 45,
+    'Page Title': 45,
     'Platform': 20,
     'Link': 50,
     'Snippet': 75,
@@ -313,17 +319,17 @@ router.post('/export/basket/:format', (req, res) => {
     // Map basket fields to neat export columns
     let exportData = leads.map((r, i) => {
       const formattedDate = r.savedAt 
-        ? new Date(r.savedAt).toLocaleString('id-ID')
+        ? new Date(r.savedAt).toLocaleString('en-US')
         : '—';
       return {
         No: i + 1,
-        'Nama/Judul': r.name,
-        'Kategori/Platform': r.category,
-        Telepon: r.phone,
-        'Alamat/Snippet': r.address,
-        Sumber: r.source,
+        'Name/Title': r.name,
+        'Category/Platform': r.category,
+        Phone: r.phone,
+        'Address/Snippet': r.address,
+        Source: r.source,
         Link: r.url,
-        'Tanggal Disimpan': formattedDate
+        'Date Saved': formattedDate
       };
     });
 

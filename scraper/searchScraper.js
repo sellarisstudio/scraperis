@@ -1,4 +1,4 @@
-const { launchBrowser } = require('./browserHelper');
+const { launchBrowserContext } = require('./browserHelper');
 const jobManager = require('./jobManager');
 
 /**
@@ -8,6 +8,30 @@ function randomDelay(min = 1000, max = 3000) {
   return new Promise((resolve) =>
     setTimeout(resolve, Math.floor(Math.random() * (max - min + 1)) + min)
   );
+}
+
+/**
+ * Simulate human interactions like scrolling and random mouse movements
+ */
+async function simulateHumanInteraction(page) {
+  try {
+    // Random delay (2000ms - 5000ms)
+    await page.waitForTimeout(2000 + Math.random() * 3000);
+
+    // Smooth mouse movement
+    const x = Math.floor(100 + Math.random() * 400);
+    const y = Math.floor(100 + Math.random() * 400);
+    await page.mouse.move(x, y, { steps: 10 });
+
+    // Scroll down slightly
+    const scrollAmount = Math.floor(300 + Math.random() * 400);
+    await page.mouse.wheel(0, scrollAmount);
+
+    // Random wait after scroll
+    await page.waitForTimeout(1000 + Math.random() * 1500);
+  } catch (err) {
+    console.error('Error simulating human interaction:', err);
+  }
 }
 
 /**
@@ -72,26 +96,105 @@ function extractPhones(text) {
 }
 
 /**
- * Main Google Search Scraping function
+ * Unified Search Scraping function supporting Google, DuckDuckGo, Bing, Yahoo, and SerpApi
  */
-async function scrapeGoogleSearch(jobId, platform, category, location, contactPrefix, maxResults = 100) {
-  const headless = process.env.BROWSER_HEADLESS !== 'false';
+async function scrapeSearch(jobId, platform, category, location, contactPrefix, maxResults = 100, searchTarget = 'google', serpApiKey = '', headless = true, captchaTimeout = 60, usePersistent = true) {
+  const platformQuery = platform.includes('.') ? platform : `${platform}.com`;
+  const searchString = `site:${platformQuery} "${category}" "${location}" "${contactPrefix}"`;
+
+  // SERPAPI implementation (No browser needed)
+  if (searchTarget === 'serpapi') {
+    try {
+      jobManager.updateStatus(jobId, 'scraping');
+      jobManager.updateProgress(jobId, 10, '🔑 Initiating request to SerpApi...');
+
+      const serpUrl = `https://serpapi.com/search.json?engine=google&q=${encodeURIComponent(searchString)}&api_key=${serpApiKey}`;
+      const response = await fetch(serpUrl);
+      
+      if (!response.ok) {
+        throw new Error(`SerpApi response error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      const organic = data.organic_results || [];
+
+      jobManager.updateProgress(jobId, 45, `✅ SerpApi returned ${organic.length} listings. Parsing...`);
+
+      let resultsCount = 0;
+      for (const res of organic) {
+        const combinedText = `${res.title || ''} ${res.snippet || ''}`;
+        const phones = extractPhones(combinedText);
+
+        if (phones.length === 0) continue;
+
+        for (const phone of phones) {
+          if (resultsCount >= maxResults) break;
+
+          const job = jobManager.getJob(jobId);
+          const isDuplicate = job.results.some(
+            (r) => r.phone === phone || (r.url === res.link && r.title === res.title)
+          );
+
+          if (!isDuplicate) {
+            resultsCount++;
+            jobManager.addResult(jobId, {
+              index: resultsCount,
+              title: res.title || '',
+              url: res.link || '',
+              phone,
+              snippet: res.snippet || '',
+              platform: platformQuery
+            });
+            jobManager.updateProgress(
+              jobId,
+              Math.min(45 + (resultsCount / maxResults) * 50, 95),
+              `✅ [${resultsCount}] Found: ${res.title} (${phone})`
+            );
+          }
+        }
+      }
+
+      const job = jobManager.getJob(jobId);
+      jobManager.updateProgress(
+        jobId,
+        100,
+        `🎉 SerpApi Google Search scraping complete! Extracted ${job.results.length} leads.`
+      );
+      jobManager.updateStatus(jobId, 'completed');
+      return;
+    } catch (err) {
+      console.error('SerpApi search error:', err);
+      jobManager.setError(jobId, err.message);
+      return;
+    }
+  }
+
+  // Playwright browsers (Google, DuckDuckGo, Bing, Yahoo)
   let browser = null;
+  let context = null;
+  let isTempProfile = false;
+  let tempProfilePath = '';
 
   try {
     jobManager.updateStatus(jobId, 'scraping');
-    jobManager.updateProgress(jobId, 5, '🚀 Launching browser for Google Search...');
+    jobManager.updateProgress(jobId, 5, `🚀 Launching browser for ${searchTarget.toUpperCase()}...`);
 
-    browser = await launchBrowser({ headless });
-
-    const context = await browser.newContext({
-      userAgent:
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+    const launchResult = await launchBrowserContext({
+      headless,
+      usePersistent,
+      jobId,
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36',
       viewport: { width: 1280, height: 800 },
       locale: 'id-ID',
+      ignoreHTTPSErrors: true,
     });
 
-    const page = await context.newPage();
+    context = launchResult.context;
+    browser = launchResult.browser;
+    isTempProfile = !!launchResult.isTemp;
+    tempProfilePath = launchResult.profilePath || '';
+
+    const page = context.pages().length > 0 ? context.pages()[0] : await context.newPage();
 
     // Stealth: override navigator.webdriver
     await page.addInitScript(() => {
@@ -100,19 +203,14 @@ async function scrapeGoogleSearch(jobId, platform, category, location, contactPr
       });
     });
 
-    // Formulate query: site:instagram.com "coffee" "bogor" "whatsapp"
-    const platformQuery = platform.includes('.') ? platform : `${platform}.com`;
-    const searchString = `site:${platformQuery} "${category}" "${location}" "${contactPrefix}"`;
-    
-    // We append &num=100 to get up to 100 results per page, which is fast and prevents too much pagination
     const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(searchString)}&num=100`;
 
-    jobManager.updateProgress(jobId, 15, `🔍 Searching Google: ${searchString}`);
+    jobManager.updateProgress(jobId, 15, `🔍 Searching ${searchTarget.toUpperCase()}: ${searchString}`);
 
     await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
-    await randomDelay(2500, 4000);
+    await simulateHumanInteraction(page);
 
-    // Check for Google Cookie/Consent popup
+    // Consent button handling
     try {
       const consentBtn = page.locator(
         'button:has-text("Accept all"), button:has-text("Terima semua"), button:has-text("I agree"), button:has-text("Setuju")'
@@ -121,14 +219,46 @@ async function scrapeGoogleSearch(jobId, platform, category, location, contactPr
         await consentBtn.first().click();
         await randomDelay(1500, 2500);
       }
-    } catch {
-      // No consent popup, proceed
-    }
+    } catch {}
 
-    // Check if CAPTCHA is detected
-    const isCaptcha = await page.locator('iframe[src*="recaptcha"], form#captcha-form, div#recaptcha').count();
-    if (isCaptcha > 0) {
-      throw new Error('Google CAPTCHA / Robot Verification detected. Try again later or deploy with a different IP/proxy.');
+    // Google captcha checking
+    if (searchTarget === 'google') {
+      let isCaptcha = await page.locator('iframe[src*="recaptcha"], form#captcha-form, div#recaptcha').count();
+      if (isCaptcha > 0) {
+        if (headless) {
+          throw new Error('Google CAPTCHA / Robot Verification detected. Try running with Headless mode OFF to solve it manually.');
+        } else {
+          jobManager.updateProgress(jobId, 18, `⚠️ CAPTCHA terdeteksi! Harap selesaikan CAPTCHA di jendela browser Anda. Menunggu hingga ${captchaTimeout} detik...`);
+          
+          let waited = 0;
+          let solved = false;
+          while (waited < captchaTimeout) {
+            // Check for cancel request
+            const currentJob = jobManager.getJob(jobId);
+            if (!currentJob || currentJob.status === 'failed') {
+              throw new Error('Job cancelled');
+            }
+            
+            await page.waitForTimeout(2000);
+            waited += 2;
+            
+            isCaptcha = await page.locator('iframe[src*="recaptcha"], form#captcha-form, div#recaptcha').count();
+            if (isCaptcha === 0) {
+              solved = true;
+              break;
+            }
+            
+            jobManager.updateProgress(jobId, 18, `⏳ Menunggu penyelesaian CAPTCHA... (${waited}/${captchaTimeout} detik berlalu)`);
+          }
+          
+          if (!solved) {
+            throw new Error(`Google CAPTCHA tidak diselesaikan dalam ${captchaTimeout} detik.`);
+          }
+          
+          jobManager.updateProgress(jobId, 19, '✅ CAPTCHA selesai diselesaikan! Melanjutkan scraping...');
+          await randomDelay(2000, 3000);
+        }
+      }
     }
 
     let currentPage = 1;
@@ -145,22 +275,18 @@ async function scrapeGoogleSearch(jobId, platform, category, location, contactPr
       jobManager.updateProgress(
         jobId,
         Math.min(20 + (resultsCount / maxResults) * 70, 90),
-        `📄 Processing search page ${currentPage}...`
+        `📄 Processing page ${currentPage}...`
       );
 
       // Extract results from current page
       const searchResults = await page.evaluate(() => {
-        // Selector for organic google search results container
         const items = document.querySelectorAll('div.g, div.MjjYud');
         const data = [];
 
         items.forEach((item) => {
           const titleEl = item.querySelector('h3');
           const linkEl = item.querySelector('a');
-          
-          // Google snippets can be inside various containers, let's grab the description texts
           const descEl = item.querySelector('div[style*="-webkit-line-clamp"], div.VwiC3b, span.aCOp2e');
-          
           if (titleEl && linkEl) {
             data.push({
               title: titleEl.textContent.trim(),
@@ -194,11 +320,9 @@ async function scrapeGoogleSearch(jobId, platform, category, location, contactPr
 
         if (resultsCount >= maxResults) break;
 
-        // Combine title and snippet to extract phone numbers
         const combinedText = `${res.title} ${res.snippet}`;
         const phones = extractPhones(combinedText);
 
-        // If no phone number is found, we skip it as requested!
         if (phones.length === 0) {
           continue;
         }
@@ -208,7 +332,6 @@ async function scrapeGoogleSearch(jobId, platform, category, location, contactPr
           if (resultsCount >= maxResults) break;
 
           const job = jobManager.getJob(jobId);
-          // Check for duplicate phone/url combination
           const isDuplicate = job.results.some(
             (r) => r.phone === phone || (r.url === res.url && r.title === res.title)
           );
@@ -233,13 +356,14 @@ async function scrapeGoogleSearch(jobId, platform, category, location, contactPr
         }
       }
 
-      // Check for "Next" / "Berikutnya" page button if we need more results
+      // Handle next page navigation
       if (resultsCount < maxResults) {
-        const nextButton = page.locator('a#pnnext, a:has-text("Berikutnya"), a:has-text("Next")');
-        if (await nextButton.isVisible()) {
+        const nextPageBtn = page.locator('a#pnnext, a:has-text("Berikutnya"), a:has-text("Next")');
+
+        if (nextPageBtn && await nextPageBtn.first().isVisible()) {
           currentPage++;
-          await nextButton.click();
-          await randomDelay(3000, 5000); // larger delay between search pages
+          await nextPageBtn.first().click();
+          await simulateHumanInteraction(page);
         } else {
           hasNextPage = false;
         }
@@ -252,21 +376,32 @@ async function scrapeGoogleSearch(jobId, platform, category, location, contactPr
     jobManager.updateProgress(
       jobId,
       100,
-      `🎉 Google Search scraping complete! Extracted ${job.results.length} leads with phone numbers.`
+      `🎉 ${searchTarget.toUpperCase()} Search scraping complete! Extracted ${job.results.length} leads with phone numbers.`
     );
     jobManager.updateStatus(jobId, 'completed');
   } catch (err) {
-    console.error('Google Search Scraping error:', err);
+    console.error(`${searchTarget.toUpperCase()} Search Scraping error:`, err);
     jobManager.setError(jobId, err.message);
   } finally {
+    if (context) {
+      try {
+        await context.close();
+      } catch {}
+    }
     if (browser) {
       try {
         await browser.close();
-      } catch {
-        // already closed
+      } catch {}
+    }
+    if (isTempProfile && tempProfilePath) {
+      const fs = require('fs');
+      try {
+        fs.rmSync(tempProfilePath, { recursive: true, force: true });
+      } catch (e) {
+        console.warn('Failed to clean temp profile:', e.message);
       }
     }
   }
 }
 
-module.exports = { scrapeGoogleSearch };
+module.exports = { scrapeSearch };

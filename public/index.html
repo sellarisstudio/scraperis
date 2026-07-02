@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,12 +10,60 @@
 </head>
 <body>
 
+  <!-- Welcome / Introduction Screen -->
+  <div class="welcome-screen" id="welcome-screen">
+    <div class="welcome-content">
+      <!-- Logo -->
+      <div class="welcome-logo">
+        <img src="/images/logo-fullcolor.png" alt="Scraperis Logo">
+      </div>
+      
+      <!-- Hero -->
+      <h1 class="welcome-title">
+        Extract Business Data from <span class="a-accent">Scraperis</span>
+      </h1>
+      <p class="welcome-subtitle">
+        Search any business type in any location. Get names, addresses, ratings, phone numbers, websites, and more.
+      </p>
+
+      <!-- Widgets / Features Grid -->
+      <div class="welcome-features">
+        <div class="m-feature-card">
+          <div class="a-feature-icon"><i data-lucide="search"></i></div>
+          <div class="a-feature-title">Smart Search</div>
+          <div class="a-feature-desc">Search businesses using keywords in any location in detail.</div>
+        </div>
+        <div class="m-feature-card">
+          <div class="a-feature-icon"><i data-lucide="zap"></i></div>
+          <div class="a-feature-title">Live Progress</div>
+          <div class="a-feature-desc">Monitor scraping process live via map radar and progress logs.</div>
+        </div>
+        <div class="m-feature-card">
+          <div class="a-feature-icon"><i data-lucide="download"></i></div>
+          <div class="a-feature-title">Basket Export</div>
+          <div class="a-feature-desc">Collect your prospective leads and easily export them to CSV/Excel.</div>
+        </div>
+      </div>
+
+      <!-- Action Button -->
+      <div class="welcome-actions">
+        <button type="button" class="a-btn a-btn-primary welcome-start-btn" id="welcome-start-btn">
+          Start Application <i data-lucide="arrow-right" class="icon-sm"></i>
+        </button>
+      </div>
+    </div>
+    
+    <div class="welcome-footer">
+      <span>Project by <strong>Sellaris Studio</strong> &middot; Open Source &middot; Free</span>
+    </div>
+  </div>
+
   <div class="t-app-layout">
     <!-- Organism: Sidebar -->
     <aside class="o-sidebar">
       <div class="o-sidebar-header">
         <a href="/" class="m-logo">
-          <img src="/images/logo-full.png" alt="Scraperis Logo" style="max-height: 40px; max-width: 100%; object-fit: contain;">
+          <img src="/images/logo-full.png" alt="Scraperis Logo" style="max-height: 56px; max-width: 80%; object-fit: contain;">
         </a>
       </div>
 
@@ -39,6 +87,10 @@
         <div class="a-engine-badge">
           <span>Playwright Active</span>
         </div>
+        <div class="o-sidebar-copyright">
+          <span>Open Source &middot; Free</span>
+          <span>Project by <strong>Sellaris Studio</strong></span>
+        </div>
       </div>
     </aside>
 
@@ -49,38 +101,18 @@
            VIEW 1: SCRAPER VIEW PANEL
            ========================================== -->
       <div class="view-panel active" id="view-scraper">
-        
-        <!-- Hero Section -->
-        <section class="m-hero">
-          <h1 class="a-hero-title">
-            Extract Business Data from <span class="a-accent">Scraperis</span>
-          </h1>
-          <p class="a-hero-subtitle">
-            Search any business type in any location. Get names, addresses, ratings, phone numbers, websites, and more.
-          </p>
-        </section>
-
-        <!-- Features (Grid) -->
-        <section class="o-features-grid">
-          <div class="m-feature-card">
-            <div class="a-feature-icon"><i data-lucide="search"></i></div>
-            <div class="a-feature-title">Smart Search</div>
-            <div class="a-feature-desc">Search by keyword in any location.</div>
-          </div>
-          <div class="m-feature-card">
-            <div class="a-feature-icon"><i data-lucide="zap"></i></div>
-            <div class="a-feature-title">Live Progress</div>
-            <div class="a-feature-desc">Watch live progress logs and status.</div>
-          </div>
-          <div class="m-feature-card">
-            <div class="a-feature-icon"><i data-lucide="download"></i></div>
-            <div class="a-feature-title">Basket Export</div>
-            <div class="a-feature-desc">Collect leads and export from your basket.</div>
-          </div>
-        </section>
 
         <!-- Search Card Panel -->
         <section class="o-panel" id="search-card">
+          <div class="m-panel-header" style="margin-bottom: var(--space-4); border-bottom: 1.5px solid var(--color-border); padding-bottom: var(--space-3);">
+            <h2 class="a-panel-title">
+              <i data-lucide="search" class="icon-accent"></i> Scraper Search Parameters
+            </h2>
+            <p style="font-size: var(--font-size-xs); color: var(--color-text-secondary); margin-top: 2px;">
+              Define search keywords and target location parameters.
+            </p>
+          </div>
+
           <!-- Segmented Control Mode Selector -->
           <div class="m-segmented-control">
             <button type="button" class="a-segment-btn active" id="mode-maps-btn" data-mode="maps">
@@ -126,7 +158,17 @@
             </div>
 
             <!-- Extra fields for Google Search mode (hidden by default) -->
-            <div class="m-form-row search-extra-fields" id="search-extra-fields" style="display: none;">
+            <div class="m-form-row-3 search-extra-fields" id="search-extra-fields" style="display: none;">
+              <div class="m-form-group">
+                <label class="a-form-label" for="search-target">
+                  <i data-lucide="search" class="icon-inline"></i> Search Target
+                </label>
+                <select class="a-form-input" id="search-target" name="searchTarget">
+                  <option value="google" selected>Google Search</option>
+                  <option value="serpapi">SerpApi (Google API)</option>
+                </select>
+                <span class="a-form-hint">Search engine to target</span>
+              </div>
               <div class="m-form-group">
                 <label class="a-form-label" for="search-platform">
                   <i data-lucide="smartphone" class="icon-inline"></i> Target Platform
@@ -192,7 +234,7 @@
             <div class="m-form-group" style="margin-top: var(--space-4); margin-bottom: var(--space-4);">
               <label class="a-checkbox-label">
                 <input type="checkbox" class="a-checkbox-input" id="chk-auto-save-basket" checked>
-                <span><i data-lucide="archive" class="icon-inline" style="margin-right: 4px;"></i> Simpan langsung ke Leads Basket setelah setiap lokasi selesai</span>
+                <span><i data-lucide="archive" class="icon-inline" style="margin-right: 4px;"></i> Automatically save to Leads Basket after each location is completed</span>
               </label>
             </div>
 
@@ -217,6 +259,15 @@
 
           <div class="m-progress-bar-container">
             <div class="a-progress-bar" id="progress-bar"></div>
+          </div>
+
+          <!-- Live Map Visualization -->
+          <div class="o-live-map-container" id="live-map-container" style="display: none;">
+            <canvas id="live-map-canvas"></canvas>
+            <div class="o-live-map-overlay">
+              <div class="o-live-map-pulse" id="live-map-pulse"></div>
+              <span id="live-map-label">Scanning...</span>
+            </div>
           </div>
 
           <div class="o-progress-logs" id="progress-logs">
@@ -279,6 +330,20 @@
                 </tbody>
               </table>
             </div>
+
+            <!-- Pagination Controls for Results -->
+            <div class="m-pagination-controls" id="results-pagination" style="display: none; justify-content: space-between; align-items: center; padding: var(--space-3) var(--space-4); border-top: 1px solid var(--color-border); font-size: var(--font-size-sm); color: var(--color-text-secondary); background: var(--color-surface); margin-top: -1px; border-bottom-left-radius: var(--radius-md); border-bottom-right-radius: var(--radius-md);">
+              <span id="results-page-info">Showing 0 to 0 of 0 entries</span>
+              <div style="display: flex; gap: var(--space-2); align-items: center;">
+                <button type="button" class="a-btn a-btn-secondary" id="btn-results-prev" style="padding: 4px 12px; font-size: var(--font-size-xs);" disabled>
+                  <i data-lucide="chevron-left" class="icon-inline"></i> Prev
+                </button>
+                <button type="button" class="a-btn a-btn-secondary" id="btn-results-next" style="padding: 4px 12px; font-size: var(--font-size-xs);" disabled>
+                  Next <i data-lucide="chevron-right" class="icon-inline"></i>
+                </button>
+              </div>
+            </div>
+
             <div class="m-empty-state" id="empty-state" style="display:none;">
               <div class="a-empty-icon"><i data-lucide="search"></i></div>
               <div class="a-empty-title">No results yet</div>
@@ -295,7 +360,7 @@
         <section class="o-panel active">
           <div class="m-panel-header">
             <h2 class="a-panel-title">
-              Saved Leads Basket <span class="a-badge" id="basket-count">(0)</span>
+              <i data-lucide="shopping-basket" class="icon-accent"></i> Saved Leads Basket <span class="a-badge" id="basket-count">(0)</span>
             </h2>
             <div class="m-panel-actions">
               <button class="a-btn a-btn-primary" id="btn-basket-export-csv" disabled>
@@ -313,7 +378,7 @@
                     <div id="basket-selection-bar" style="display: none; align-items: center; gap: 8px; margin-bottom: 12px; padding: var(--space-2) var(--space-4); background: var(--color-background); border: 1px solid var(--color-border); border-radius: var(--radius-md);">
             <label class="a-checkbox-label">
               <input type="checkbox" class="a-checkbox-input" id="chk-basket-select-all" checked />
-              <span>Pilih Semua Tanggal Grup</span>
+              <span>Select All Date Groups</span>
             </label>
           </div>
 
@@ -335,149 +400,261 @@
         <section class="o-panel active">
           <div class="m-panel-header">
             <h2 class="a-panel-title">
-              <i data-lucide="settings" class="icon-accent"></i> Export Configuration
+              <i data-lucide="settings" class="icon-accent"></i> Configuration Settings
             </h2>
             <p style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">
-              Choose which columns to include in exported CSV and Excel files. Settings are saved automatically.
+              Configure application parameters, customize export columns, or set API keys.
             </p>
           </div>
 
-          <div class="o-config-columns-grid">
-            <!-- Google Maps Config -->
-            <div class="o-config-card">
-              <h3 class="o-config-card-title">
-                <i data-lucide="map" class="icon-sm"></i> Google Maps Columns
-              </h3>
-              <div class="m-checkbox-list" id="config-maps-columns">
-                <label class="a-checkbox-label">
-                  <input type="checkbox" class="a-checkbox-input" value="No" checked>
-                  <span>No</span>
-                </label>
-                <label class="a-checkbox-label">
-                  <input type="checkbox" class="a-checkbox-input" value="Nama Bisnis" checked>
-                  <span>Nama Bisnis</span>
-                </label>
-                <label class="a-checkbox-label">
-                  <input type="checkbox" class="a-checkbox-input" value="Kategori" checked>
-                  <span>Kategori</span>
-                </label>
-                <label class="a-checkbox-label">
-                  <input type="checkbox" class="a-checkbox-input" value="Rating" checked>
-                  <span>Rating</span>
-                </label>
-                <label class="a-checkbox-label">
-                  <input type="checkbox" class="a-checkbox-input" value="Jumlah Review" checked>
-                  <span>Jumlah Review</span>
-                </label>
-                <label class="a-checkbox-label">
-                  <input type="checkbox" class="a-checkbox-input" value="Alamat" checked>
-                  <span>Alamat</span>
-                </label>
-                <label class="a-checkbox-label">
-                  <input type="checkbox" class="a-checkbox-input" value="Telepon" checked>
-                  <span>Telepon</span>
-                </label>
-                <label class="a-checkbox-label">
-                  <input type="checkbox" class="a-checkbox-input" value="Website" checked>
-                  <span>Website</span>
-                </label>
-                <label class="a-checkbox-label">
-                  <input type="checkbox" class="a-checkbox-input" value="Plus Code" checked>
-                  <span>Plus Code</span>
-                </label>
-                <label class="a-checkbox-label">
-                  <input type="checkbox" class="a-checkbox-input" value="Jam Operasional" checked>
-                  <span>Jam Operasional</span>
-                </label>
-                <label class="a-checkbox-label">
-                  <input type="checkbox" class="a-checkbox-input" value="Latitude" checked>
-                  <span>Latitude</span>
-                </label>
-                <label class="a-checkbox-label">
-                  <input type="checkbox" class="a-checkbox-input" value="Longitude" checked>
-                  <span>Longitude</span>
-                </label>
-                <label class="a-checkbox-label">
-                  <input type="checkbox" class="a-checkbox-input" value="Google Maps URL" checked>
-                  <span>Google Maps URL</span>
-                </label>
-              </div>
-            </div>
+          <!-- Sub-navigation Tabs -->
+          <div class="m-config-tabs">
+            <button type="button" class="a-config-tab active" data-tab="tab-export-cols">
+              <i data-lucide="download" class="icon-sm"></i> Export Columns
+            </button>
+            <button type="button" class="a-config-tab" data-tab="tab-browser-settings">
+              <i data-lucide="monitor" class="icon-sm"></i> Scraper Settings
+            </button>
+            <button type="button" class="a-config-tab" data-tab="tab-api-keys">
+              <i data-lucide="key" class="icon-sm"></i> API Credentials
+            </button>
+            <button type="button" class="a-config-tab" data-tab="tab-backup-restore">
+              <i data-lucide="database" class="icon-sm"></i> Backup & Restore
+            </button>
+          </div>
 
-            <!-- Google Search Config -->
-            <div class="o-config-card">
-              <h3 class="o-config-card-title">
-                <i data-lucide="globe" class="icon-sm"></i> Google Search Columns
-              </h3>
-              <div class="m-checkbox-list" id="config-search-columns">
-                <label class="a-checkbox-label">
-                  <input type="checkbox" class="a-checkbox-input" value="No" checked>
-                  <span>No</span>
-                </label>
-                <label class="a-checkbox-label">
-                  <input type="checkbox" class="a-checkbox-input" value="Judul Halaman" checked>
-                  <span>Judul Halaman</span>
-                </label>
-                <label class="a-checkbox-label">
-                  <input type="checkbox" class="a-checkbox-input" value="Platform" checked>
-                  <span>Platform</span>
-                </label>
-                <label class="a-checkbox-label">
-                  <input type="checkbox" class="a-checkbox-input" value="Link" checked>
-                  <span>Link</span>
-                </label>
-                <label class="a-checkbox-label">
-                  <input type="checkbox" class="a-checkbox-input" value="Telepon" checked>
-                  <span>Telepon</span>
-                </label>
-                <label class="a-checkbox-label">
-                  <input type="checkbox" class="a-checkbox-input" value="Snippet" checked>
-                  <span>Snippet</span>
-                </label>
+          <!-- TAB CONTENT 1: Export Columns -->
+          <div class="o-config-tab-content active" id="tab-export-cols">
+            <div class="o-config-columns-grid">
+              <!-- Google Maps Config -->
+              <div class="o-config-card">
+                <h3 class="o-config-card-title">
+                  <i data-lucide="map" class="icon-sm"></i> Google Maps Columns
+                </h3>
+                <div class="m-checkbox-list" id="config-maps-columns">
+                  <label class="a-checkbox-label">
+                    <input type="checkbox" class="a-checkbox-input" value="No" checked>
+                    <span>No</span>
+                  </label>
+                  <label class="a-checkbox-label">
+                    <input type="checkbox" class="a-checkbox-input" value="Business Name" checked>
+                    <span>Business Name</span>
+                  </label>
+                  <label class="a-checkbox-label">
+                    <input type="checkbox" class="a-checkbox-input" value="Category" checked>
+                    <span>Category</span>
+                  </label>
+                  <label class="a-checkbox-label">
+                    <input type="checkbox" class="a-checkbox-input" value="Rating" checked>
+                    <span>Rating</span>
+                  </label>
+                  <label class="a-checkbox-label">
+                    <input type="checkbox" class="a-checkbox-input" value="Reviews Count" checked>
+                    <span>Reviews Count</span>
+                  </label>
+                  <label class="a-checkbox-label">
+                    <input type="checkbox" class="a-checkbox-input" value="Address" checked>
+                    <span>Address</span>
+                  </label>
+                  <label class="a-checkbox-label">
+                    <input type="checkbox" class="a-checkbox-input" value="Phone" checked>
+                    <span>Phone</span>
+                  </label>
+                  <label class="a-checkbox-label">
+                    <input type="checkbox" class="a-checkbox-input" value="Website" checked>
+                    <span>Website</span>
+                  </label>
+                  <label class="a-checkbox-label">
+                    <input type="checkbox" class="a-checkbox-input" value="Plus Code" checked>
+                    <span>Plus Code</span>
+                  </label>
+                  <label class="a-checkbox-label">
+                    <input type="checkbox" class="a-checkbox-input" value="Opening Hours" checked>
+                    <span>Opening Hours</span>
+                  </label>
+                  <label class="a-checkbox-label">
+                    <input type="checkbox" class="a-checkbox-input" value="Latitude" checked>
+                    <span>Latitude</span>
+                  </label>
+                  <label class="a-checkbox-label">
+                    <input type="checkbox" class="a-checkbox-input" value="Longitude" checked>
+                    <span>Longitude</span>
+                  </label>
+                  <label class="a-checkbox-label">
+                    <input type="checkbox" class="a-checkbox-input" value="Google Maps URL" checked>
+                    <span>Google Maps URL</span>
+                  </label>
+                </div>
               </div>
-            </div>
 
-            <!-- Leads Basket Config -->
-            <div class="o-config-card">
-              <h3 class="o-config-card-title">
-                <i data-lucide="shopping-basket" class="icon-sm"></i> Leads Basket Columns
-              </h3>
-              <div class="m-checkbox-list" id="config-basket-columns">
-                <label class="a-checkbox-label">
-                  <input type="checkbox" class="a-checkbox-input" value="No" checked>
-                  <span>No</span>
-                </label>
-                <label class="a-checkbox-label">
-                  <input type="checkbox" class="a-checkbox-input" value="Nama/Judul" checked>
-                  <span>Nama/Judul</span>
-                </label>
-                <label class="a-checkbox-label">
-                  <input type="checkbox" class="a-checkbox-input" value="Kategori/Platform" checked>
-                  <span>Kategori/Platform</span>
-                </label>
-                <label class="a-checkbox-label">
-                  <input type="checkbox" class="a-checkbox-input" value="Telepon" checked>
-                  <span>Telepon</span>
-                </label>
-                <label class="a-checkbox-label">
-                  <input type="checkbox" class="a-checkbox-input" value="Alamat/Snippet" checked>
-                  <span>Alamat/Snippet</span>
-                </label>
-                <label class="a-checkbox-label">
-                  <input type="checkbox" class="a-checkbox-input" value="Sumber" checked>
-                  <span>Sumber</span>
-                </label>
-                <label class="a-checkbox-label">
-                  <input type="checkbox" class="a-checkbox-input" value="Link" checked>
-                  <span>Link</span>
-                </label>
-                <label class="a-checkbox-label">
-                  <input type="checkbox" class="a-checkbox-input" value="Tanggal Disimpan" checked>
-                  <span>Tanggal Disimpan</span>
-                </label>
+              <!-- Google Search Config -->
+              <div class="o-config-card">
+                <h3 class="o-config-card-title">
+                  <i data-lucide="globe" class="icon-sm"></i> Google Search Columns
+                </h3>
+                <div class="m-checkbox-list" id="config-search-columns">
+                  <label class="a-checkbox-label">
+                    <input type="checkbox" class="a-checkbox-input" value="No" checked>
+                    <span>No</span>
+                  </label>
+                  <label class="a-checkbox-label">
+                    <input type="checkbox" class="a-checkbox-input" value="Page Title" checked>
+                    <span>Page Title</span>
+                  </label>
+                  <label class="a-checkbox-label">
+                    <input type="checkbox" class="a-checkbox-input" value="Platform" checked>
+                    <span>Platform</span>
+                  </label>
+                  <label class="a-checkbox-label">
+                    <input type="checkbox" class="a-checkbox-input" value="Link" checked>
+                    <span>Link</span>
+                  </label>
+                  <label class="a-checkbox-label">
+                    <input type="checkbox" class="a-checkbox-input" value="Phone" checked>
+                    <span>Phone</span>
+                  </label>
+                  <label class="a-checkbox-label">
+                    <input type="checkbox" class="a-checkbox-input" value="Snippet" checked>
+                    <span>Snippet</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Leads Basket Config -->
+              <div class="o-config-card">
+                <h3 class="o-config-card-title">
+                  <i data-lucide="shopping-basket" class="icon-sm"></i> Leads Basket Columns
+                </h3>
+                <div class="m-checkbox-list" id="config-basket-columns">
+                  <label class="a-checkbox-label">
+                    <input type="checkbox" class="a-checkbox-input" value="No" checked>
+                    <span>No</span>
+                  </label>
+                  <label class="a-checkbox-label">
+                    <input type="checkbox" class="a-checkbox-input" value="Name/Title" checked>
+                    <span>Name/Title</span>
+                  </label>
+                  <label class="a-checkbox-label">
+                    <input type="checkbox" class="a-checkbox-input" value="Category/Platform" checked>
+                    <span>Category/Platform</span>
+                  </label>
+                  <label class="a-checkbox-label">
+                    <input type="checkbox" class="a-checkbox-input" value="Phone" checked>
+                    <span>Phone</span>
+                  </label>
+                  <label class="a-checkbox-label">
+                    <input type="checkbox" class="a-checkbox-input" value="Address/Snippet" checked>
+                    <span>Address/Snippet</span>
+                  </label>
+                  <label class="a-checkbox-label">
+                    <input type="checkbox" class="a-checkbox-input" value="Source" checked>
+                    <span>Source</span>
+                  </label>
+                  <label class="a-checkbox-label">
+                    <input type="checkbox" class="a-checkbox-input" value="Link" checked>
+                    <span>Link</span>
+                  </label>
+                  <label class="a-checkbox-label">
+                    <input type="checkbox" class="a-checkbox-input" value="Date Saved" checked>
+                    <span>Date Saved</span>
+                  </label>
+                </div>
               </div>
             </div>
           </div>
+
+          <!-- TAB CONTENT 2: Browser Config -->
+          <div class="o-config-tab-content" id="tab-browser-settings">
+            <div class="o-config-columns-grid" style="grid-template-columns: 1fr;">
+              <div class="o-config-card">
+                <h3 class="o-config-card-title">
+                  <i data-lucide="monitor" class="icon-sm"></i> Browser Rendering
+                </h3>
+                <p style="font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-bottom: var(--space-4);">
+                  Select browser rendering options for the local scraping process.
+                </p>
+                <div style="display: flex; flex-direction: column; gap: var(--space-4); max-width: 500px;">
+                  <label class="a-checkbox-label">
+                    <input type="checkbox" class="a-checkbox-input" id="config-headless" checked>
+                    <span>Run Headless (Hidden Browser)</span>
+                  </label>
+                  <label class="a-checkbox-label">
+                    <input type="checkbox" class="a-checkbox-input" id="config-persistent-profile" checked>
+                    <span>Use Persistent Profile</span>
+                  </label>
+                  <label class="a-checkbox-label">
+                    <input type="checkbox" class="a-checkbox-input" id="config-show-map-visual" checked>
+                    <span>Show Map Visualization (Live Map) during Scraping</span>
+                  </label>
+                  <div class="m-form-group">
+                    <label class="a-form-label" for="config-captcha-timeout">
+                      Captcha Timeout (seconds)
+                    </label>
+                    <input type="number" class="a-form-input" id="config-captcha-timeout" value="60" min="10" max="300" style="padding: var(--space-1) var(--space-2); font-size: var(--font-size-sm); width: 80px;">
+                    <span class="a-form-hint" style="font-size: 11px; display: block; margin-top: 4px;">The duration to wait so that you can solve CAPTCHAs before the browser closes.</span>
+                  </div>
+                  <div style="margin-top: var(--space-2); border-top: 1px solid var(--color-border); padding-top: var(--space-4);">
+                    <button type="button" class="a-btn" id="btn-reset-intro">
+                      <i data-lucide="help-circle" class="icon-sm"></i> Show Welcome Screen Again
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB CONTENT 3: API Key Config -->
+          <div class="o-config-tab-content" id="tab-api-keys">
+            <div class="o-config-columns-grid" style="grid-template-columns: 1fr;">
+              <div class="o-config-card">
+                <h3 class="o-config-card-title">
+                  <i data-lucide="key" class="icon-sm"></i> API Credentials
+                </h3>
+                <p style="font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-bottom: var(--space-3);">
+                  Enter your SerpApi API Key if you want to use the "SerpApi" search target. The API key is stored locally in your browser.
+                </p>
+                <div class="m-form-group" style="max-width: 500px;">
+                  <label class="a-form-label" for="config-serpapi-key">SerpApi API Key</label>
+                  <input type="password" class="a-form-input" id="config-serpapi-key" placeholder="Enter your API Key..." autocomplete="off" style="width: 100%;">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB CONTENT 4: Backup & Restore -->
+          <div class="o-config-tab-content" id="tab-backup-restore">
+            <div class="o-config-columns-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+              <!-- Export Backup Card -->
+              <div class="o-config-card">
+                <h3 class="o-config-card-title">
+                  <i data-lucide="upload-cloud" class="icon-sm"></i> Export Backup
+                </h3>
+                <p style="font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-bottom: var(--space-4);">
+                  Download all your configuration settings and Leads Basket data as a single JSON file.
+                </p>
+                <button type="button" class="a-btn a-btn-primary" id="btn-export-backup" style="width: 100%;">
+                  <i data-lucide="download" class="icon-sm"></i> Download Backup File
+                </button>
+              </div>
+
+              <!-- Import Backup Card -->
+              <div class="o-config-card">
+                <h3 class="o-config-card-title">
+                  <i data-lucide="download-cloud" class="icon-sm"></i> Import Backup
+                </h3>
+                <p style="font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-bottom: var(--space-4);">
+                  Upload a previously saved Scraperis backup file to restore all settings and leads.
+                </p>
+                <div style="display: flex; flex-direction: column; gap: var(--space-2);">
+                  <button type="button" class="a-btn" id="btn-trigger-import" style="width: 100%;">
+                    <i data-lucide="upload" class="icon-sm"></i> Upload Backup File
+                  </button>
+                  <input type="file" id="input-import-backup" accept=".json" style="display: none;">
+                </div>
+              </div>
+            </div>
+          </div>
+
         </section>
       </div>
 

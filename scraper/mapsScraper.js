@@ -1,4 +1,4 @@
-const { launchBrowser } = require('./browserHelper');
+const { launchBrowserContext } = require('./browserHelper');
 const jobManager = require('./jobManager');
 
 /**
@@ -8,6 +8,30 @@ function randomDelay(min = 800, max = 2000) {
   return new Promise((resolve) =>
     setTimeout(resolve, Math.floor(Math.random() * (max - min + 1)) + min)
   );
+}
+
+/**
+ * Simulate human interactions like scrolling and random mouse movements
+ */
+async function simulateHumanInteraction(page) {
+  try {
+    // Random delay (2000ms - 5000ms)
+    await page.waitForTimeout(2000 + Math.random() * 3000);
+
+    // Smooth mouse movement
+    const x = Math.floor(100 + Math.random() * 400);
+    const y = Math.floor(100 + Math.random() * 400);
+    await page.mouse.move(x, y, { steps: 10 });
+
+    // Scroll down slightly
+    const scrollAmount = Math.floor(300 + Math.random() * 400);
+    await page.mouse.wheel(0, scrollAmount);
+
+    // Random wait after scroll
+    await page.waitForTimeout(1000 + Math.random() * 1500);
+  } catch (err) {
+    console.error('Error simulating human interaction:', err);
+  }
 }
 
 /**
@@ -170,26 +194,33 @@ async function extractBusinessDetail(page) {
 /**
  * Main scraping function
  */
-async function scrapeGoogleMaps(jobId, query, location, maxResults = 40) {
-  const headless = process.env.BROWSER_HEADLESS !== 'false';
+async function scrapeGoogleMaps(jobId, query, location, maxResults = 40, headless = true, captchaTimeout = 60, usePersistent = true) {
   let browser = null;
+  let context = null;
+  let isTempProfile = false;
+  let tempProfilePath = '';
 
   try {
     jobManager.updateStatus(jobId, 'scraping');
     jobManager.updateProgress(jobId, 5, '🚀 Launching browser...');
 
-    browser = await launchBrowser({ headless });
-
-    const context = await browser.newContext({
-      userAgent:
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+    const launchResult = await launchBrowserContext({
+      headless,
+      usePersistent,
+      jobId,
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36',
       viewport: { width: 1366, height: 768 },
       locale: 'id-ID',
       geolocation: { latitude: -6.2088, longitude: 106.8456 },
       permissions: ['geolocation'],
     });
 
-    const page = await context.newPage();
+    context = launchResult.context;
+    browser = launchResult.browser;
+    isTempProfile = !!launchResult.isTemp;
+    tempProfilePath = launchResult.profilePath || '';
+
+    const page = context.pages().length > 0 ? context.pages()[0] : await context.newPage();
 
     // Stealth: override navigator.webdriver
     await page.addInitScript(() => {
@@ -205,7 +236,45 @@ async function scrapeGoogleMaps(jobId, query, location, maxResults = 40) {
     jobManager.updateProgress(jobId, 10, `🔍 Searching: "${query}" di "${location}"...`);
 
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
-    await randomDelay(2000, 3500);
+    await simulateHumanInteraction(page);
+
+    // Google captcha checking
+    let isCaptcha = await page.locator('iframe[src*="recaptcha"], form#captcha-form, div#recaptcha').count();
+    if (isCaptcha > 0) {
+      if (headless) {
+        throw new Error('Google CAPTCHA / Robot Verification detected. Try running with Headless mode OFF to solve it manually.');
+      } else {
+        jobManager.updateProgress(jobId, 12, `⚠️ CAPTCHA terdeteksi! Harap selesaikan CAPTCHA di jendela browser Anda. Menunggu hingga ${captchaTimeout} detik...`);
+        
+        let waited = 0;
+        let solved = false;
+        while (waited < captchaTimeout) {
+          // Check for cancel request
+          const currentJob = jobManager.getJob(jobId);
+          if (!currentJob || currentJob.status === 'failed') {
+            throw new Error('Job cancelled');
+          }
+          
+          await page.waitForTimeout(2000);
+          waited += 2;
+          
+          isCaptcha = await page.locator('iframe[src*="recaptcha"], form#captcha-form, div#recaptcha').count();
+          if (isCaptcha === 0) {
+            solved = true;
+            break;
+          }
+          
+          jobManager.updateProgress(jobId, 12, `⏳ Menunggu penyelesaian CAPTCHA... (${waited}/${captchaTimeout} detik berlalu)`);
+        }
+        
+        if (!solved) {
+          throw new Error(`Google CAPTCHA tidak diselesaikan dalam ${captchaTimeout} detik.`);
+        }
+        
+        jobManager.updateProgress(jobId, 13, '✅ CAPTCHA selesai diselesaikan! Melanjutkan scraping...');
+        await randomDelay(2000, 3000);
+      }
+    }
 
     // Handle consent/cookie popup if present
     try {
@@ -456,11 +525,22 @@ async function scrapeGoogleMaps(jobId, query, location, maxResults = 40) {
     console.error('Scraping error:', err);
     jobManager.setError(jobId, err.message);
   } finally {
+    if (context) {
+      try {
+        await context.close();
+      } catch {}
+    }
     if (browser) {
       try {
         await browser.close();
-      } catch {
-        // Browser already closed
+      } catch {}
+    }
+    if (isTempProfile && tempProfilePath) {
+      const fs = require('fs');
+      try {
+        fs.rmSync(tempProfilePath, { recursive: true, force: true });
+      } catch (e) {
+        console.warn('Failed to clean temp profile:', e.message);
       }
     }
   }
