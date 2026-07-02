@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ScrapMap - Extract business data from Google Maps. Search by keyword and location, export to CSV or Excel.">
+  <title>ScrapMap — Google Maps Business Scraper</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗺️</text></svg>">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header" id="header">
+    <div class="header-inner">
+      <a href="/" class="logo">
+        <div class="logo-icon">🗺️</div>
+        <div class="logo-text">Scrap<span>Map</span></div>
+      </a>
+      <div class="header-badge">
+        <span>Playwright Engine</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <div class="container">
+
+      <!-- Hero Section -->
+      <section class="hero">
+        <h1 class="hero-title">
+          Extract Business Data<br>from <span class="accent">Google Maps</span>
+        </h1>
+        <p class="hero-subtitle">
+          Search any business type in any location. Get names, addresses, ratings, phone numbers, websites, and more — exported to CSV or Excel.
+        </p>
+      </section>
+
+      <!-- Feature Cards -->
+      <section class="features">
+        <div class="feature-card">
+          <div class="feature-icon">🔍</div>
+          <div class="feature-title">Smart Search</div>
+          <div class="feature-desc">Search by keyword like "kedai kopi", "restoran", or "toko kelontong" in any location.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <div class="feature-title">Real-time Progress</div>
+          <div class="feature-desc">Watch live as data is extracted from each business listing with detailed progress updates.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <div class="feature-title">Export Data</div>
+          <div class="feature-desc">Download results as CSV or Excel file. Includes ratings, addresses, phones, and coordinates.</div>
+        </div>
+      </section>
+
+      <!-- Search Card -->
+      <section class="search-card" id="search-card">
+        <!-- Mode Selector -->
+        <div class="mode-selector">
+          <button type="button" class="mode-btn active" id="mode-maps-btn" data-mode="maps">🗺️ Google Maps</button>
+          <button type="button" class="mode-btn" id="mode-search-btn" data-mode="search">🌐 Google Search (Sosmed)</button>
+        </div>
+
+        <form class="search-form" id="search-form">
+          <!-- Hidden Mode Input -->
+          <input type="hidden" id="search-mode" name="mode" value="maps">
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="search-query" id="label-query">🔍 Business Keyword</label>
+              <input
+                type="text"
+                class="form-input"
+                id="search-query"
+                name="query"
+                placeholder="e.g. kedai kopi, esteh, toko kelontong"
+                required
+                autocomplete="off"
+              >
+              <span class="form-hint" id="hint-query">What type of business are you looking for?</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="search-location">📍 Location</label>
+              <input
+                type="text"
+                class="form-input"
+                id="search-location"
+                name="location"
+                placeholder="e.g. Jakarta Selatan, Bandung, Surabaya"
+                required
+                autocomplete="off"
+              >
+              <span class="form-hint">City, area, or specific neighborhood</span>
+            </div>
+          </div>
+
+          <!-- Extra fields for Google Search mode (hidden by default) -->
+          <div class="form-row search-extra-fields" id="search-extra-fields" style="display: none;">
+            <div class="form-group">
+              <label class="form-label" for="search-platform">📱 Target Platform</label>
+              <select class="form-input" id="search-platform" name="platform">
+                <option value="instagram.com">Instagram (instagram.com)</option>
+                <option value="facebook.com">Facebook (facebook.com)</option>
+                <option value="tiktok.com">TikTok (tiktok.com)</option>
+                <option value="x.com">Twitter/X (x.com)</option>
+                <option value="linkedin.com">LinkedIn (linkedin.com)</option>
+                <option value="custom">Custom Site...</option>
+              </select>
+              <span class="form-hint">Social media platform to target</span>
+              <input
+                type="text"
+                class="form-input"
+                id="search-platform-custom"
+                placeholder="e.g. youtube.com, kaskus.co.id"
+                style="display: none; margin-top: var(--space-2);"
+                autocomplete="off"
+              >
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="search-contact">📞 Contact Prefix</label>
+              <input
+                type="text"
+                class="form-input"
+                id="search-contact"
+                name="contactPrefix"
+                value="whatsapp"
+                placeholder="e.g. whatsapp, wa.me, telp"
+                autocomplete="off"
+              >
+              <span class="form-hint">Pattern to look for contact numbers</span>
+            </div>
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-header">
+              <label class="form-label" for="max-results">📋 Maximum Results</label>
+              <span class="slider-value" id="slider-value">40</span>
+            </div>
+            <input
+              type="range"
+              class="form-slider"
+              id="max-results"
+              name="maxResults"
+              min="5"
+              max="500"
+              value="40"
+              step="5"
+            >
+            <div style="display:flex; justify-content:space-between;">
+              <span class="form-hint">5</span>
+              <span class="form-hint">500</span>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="btn-scrape">
+              <span id="btn-text">🚀 Start Scraping</span>
+              <div class="spinner" id="btn-spinner" style="display:none;"></div>
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Progress Section -->
+      <section class="progress-section" id="progress-section">
+        <div class="progress-card">
+          <div class="progress-header">
+            <div class="progress-title">
+              <span class="status-dot" id="status-dot"></span>
+              <span id="progress-status-text">Scraping in progress...</span>
+            </div>
+            <div class="progress-percent" id="progress-percent">0%</div>
+          </div>
+
+          <div class="progress-bar-container">
+            <div class="progress-bar" id="progress-bar"></div>
+          </div>
+
+          <div class="progress-logs" id="progress-logs">
+            <!-- Log entries will be inserted here -->
+          </div>
+
+          <div class="progress-stats">
+            <div class="stat-item">
+              <div class="stat-value" id="stat-found">0</div>
+              <div class="stat-label">Found</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="stat-query">—</div>
+              <div class="stat-label">Query</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="stat-location">—</div>
+              <div class="stat-label">Location</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Results Section -->
+      <section class="results-section" id="results-section">
+        <div class="results-header">
+          <h2 class="results-title">
+            Results <span class="results-count" id="results-count"></span>
+          </h2>
+          <div class="results-actions">
+            <button class="btn btn-primary btn-sm" id="btn-save-all-basket" style="background: var(--color-accent-light); color: var(--color-accent); box-shadow: none;" disabled>
+              📥 Save All to Basket
+            </button>
+            <button class="btn btn-secondary btn-sm" id="btn-export-csv" disabled>
+              📄 Export CSV
+            </button>
+            <button class="btn btn-secondary btn-sm" id="btn-export-excel" disabled>
+              📊 Export Excel
+            </button>
+          </div>
+        </div>
+        <div class="table-container">
+          <div class="table-scroll">
+            <table class="results-table" id="results-table">
+              <thead id="results-thead">
+                <tr>
+                  <th data-sort="index">No <span class="sort-icon">↕</span></th>
+                  <th data-sort="name">Business Name <span class="sort-icon">↕</span></th>
+                  <th data-sort="category">Category <span class="sort-icon">↕</span></th>
+                  <th data-sort="rating">Rating <span class="sort-icon">↕</span></th>
+                  <th data-sort="reviewCount">Reviews <span class="sort-icon">↕</span></th>
+                  <th data-sort="address">Address <span class="sort-icon">↕</span></th>
+                  <th data-sort="phone">Phone <span class="sort-icon">↕</span></th>
+                  <th>Website</th>
+                  <th>Maps</th>
+                </tr>
+              </thead>
+              <tbody id="results-tbody">
+                <!-- Results will be inserted here -->
+              </tbody>
+            </table>
+          </div>
+          <div class="empty-state" id="empty-state" style="display:none;">
+            <div class="empty-icon">🔍</div>
+            <div class="empty-title">No results yet</div>
+            <div class="empty-text">Start a search to see business data appear here.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Saved Leads Basket Section -->
+      <section class="results-section active" id="basket-section" style="margin-top: var(--space-8);">
+        <div class="results-header">
+          <h2 class="results-title">
+            Saved Leads Basket 🧺 <span class="results-count" id="basket-count">(0)</span>
+          </h2>
+          <div class="results-actions">
+            <button class="btn btn-secondary btn-sm" id="btn-basket-export-csv" disabled>
+              📄 Export Basket CSV
+            </button>
+            <button class="btn btn-secondary btn-sm" id="btn-basket-export-excel" disabled>
+              📊 Export Basket Excel
+            </button>
+            <button class="btn btn-secondary btn-sm" id="btn-basket-clear" style="border-color: var(--color-error); color: var(--color-error);" disabled>
+              🗑️ Clear Basket
+            </button>
+          </div>
+        </div>
+        <div class="table-container">
+          <div class="table-scroll">
+            <table class="results-table" id="basket-table">
+              <thead>
+                <tr>
+                  <th style="width: 50px;">No</th>
+                  <th>Nama / Judul</th>
+                  <th>Kategori / Platform</th>
+                  <th>Telepon</th>
+                  <th>Alamat / Snippet</th>
+                  <th>Sumber</th>
+                  <th>Link</th>
+                  <th style="width: 80px; text-align: center;">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="basket-tbody">
+                <!-- Basket items will be inserted here -->
+              </tbody>
+            </table>
+          </div>
+          <div class="empty-state" id="basket-empty-state">
+            <div class="empty-icon">🧺</div>
+            <div class="empty-title">Basket is empty</div>
+            <div class="empty-text">Save leads from your active results above to build up a list here.</div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p>ScrapMap — Google Maps Business Data Extractor</p>
+      <p style="margin-top:4px;">Built with Node.js, Playwright & ❤️ • For research purposes only</p>
+    </div>
+  </footer>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>

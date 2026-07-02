@@ -1,0 +1,23 @@
+{
+  "name": "scrapmap",
+  "version": "1.0.0",
+  "description": "Google Maps Business Scraper - Extract business data from Google Maps",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "install-browser": "npx playwright install chromium --with-deps"
+  },
+  "keywords": ["google-maps", "scraper", "playwright", "business-data"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "json2csv": "^6.0.0-alpha.2",
+    "playwright": "^1.52.0",
+    "uuid": "^11.1.0",
+    "xlsx": "^0.18.5"
+  }
+}
