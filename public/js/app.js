@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ScrapMap - Frontend Application
  * Handles search, SSE streaming, results rendering, and exports.
  */
@@ -54,6 +54,8 @@
   const basketGroupsContainer = document.getElementById('basket-groups-container');
   const basketCount = document.getElementById('basket-count');
   const basketEmptyState = document.getElementById('basket-empty-state');
+  const chkBasketSelectAll = document.getElementById('chk-basket-select-all');
+  const basketSelectionBar = document.getElementById('basket-selection-bar');
 
   const toastContainer = document.getElementById('toast-container');
 
@@ -67,6 +69,7 @@
   let sortDirection = 'asc';
   let activeScraperMode = 'maps';
   let savedLeads = [];
+  let uncheckedDates = new Set();
 
   try {
     savedLeads = JSON.parse(localStorage.getItem('scraperis_basket') || localStorage.getItem('scrapmap_basket')) || [];
@@ -857,6 +860,7 @@
 
     if (savedLeads.length === 0) {
       basketEmptyState.style.display = 'block';
+      if (basketSelectionBar) basketSelectionBar.style.display = 'none';
       btnBasketExportCsv.disabled = true;
       btnBasketExportExcel.disabled = true;
       btnBasketClear.disabled = true;
@@ -864,6 +868,7 @@
     }
 
     basketEmptyState.style.display = 'none';
+    if (basketSelectionBar) basketSelectionBar.style.display = 'flex';
     btnBasketExportCsv.disabled = false;
     btnBasketExportExcel.disabled = false;
     btnBasketClear.disabled = false;
@@ -893,9 +898,11 @@
       groupDiv.className = 'o-basket-group';
       groupDiv.style.marginBottom = 'var(--space-6)';
 
+      const isChecked = !uncheckedDates.has(dateKey);
       groupDiv.innerHTML = `
         <div class="m-basket-group-header" style="display: flex; justify-content: space-between; align-items: center; padding: var(--space-3) var(--space-4); background: var(--color-background); border: 1px solid var(--color-border); border-bottom: none; border-top-left-radius: var(--radius-md); border-top-right-radius: var(--radius-md); font-weight: 600; cursor: pointer; user-select: none;">
           <span style="display: flex; align-items: center; gap: var(--space-2); color: var(--color-text-primary);">
+            <input type="checkbox" class="a-checkbox-input basket-group-checkbox" data-date="${dateKey}" ${isChecked ? 'checked' : ''} style="margin-right: 8px;" onclick="event.stopPropagation();" />
             <i data-lucide="chevron-down" class="group-collapse-icon icon-sm" style="transition: transform var(--transition-fast);"></i>
             <i data-lucide="calendar" class="icon-accent icon-sm"></i>
             <span>${escapeHtml(dateLabel)}</span>
@@ -940,6 +947,18 @@
         deleteGroupLeads(dateKey, dateLabel);
       });
 
+      const cb = groupDiv.querySelector('.basket-group-checkbox');
+      if (cb) {
+        cb.addEventListener('change', (e) => {
+          if (e.target.checked) {
+            uncheckedDates.delete(dateKey);
+          } else {
+            uncheckedDates.add(dateKey);
+          }
+          updateSelectAllCheckboxState();
+        });
+      }
+
       const actualTbody = groupDiv.querySelector('.basket-group-tbody');
 
       groupLeads.forEach((item, index) => {
@@ -971,6 +990,17 @@
         });
       }
     });
+
+    updateSelectAllCheckboxState();
+  }
+
+  function updateSelectAllCheckboxState() {
+    if (!chkBasketSelectAll) return;
+    const checkboxes = document.querySelectorAll('.basket-group-checkbox');
+    const checkedCheckboxes = document.querySelectorAll('.basket-group-checkbox:checked');
+    
+    chkBasketSelectAll.checked = checkboxes.length > 0 && checkboxes.length === checkedCheckboxes.length;
+    chkBasketSelectAll.indeterminate = checkedCheckboxes.length > 0 && checkedCheckboxes.length < checkboxes.length;
   }
 
   function deleteBasketLead(phone) {
@@ -995,6 +1025,23 @@
 
   async function exportBasket(format) {
     if (savedLeads.length === 0) return;
+
+    const checkedDates = Array.from(document.querySelectorAll('.basket-group-checkbox:checked')).map(cb => cb.getAttribute('data-date'));
+    if (checkedDates.length === 0) {
+      showToast('Pilih minimal satu tanggal grup untuk diexport!', 'warning');
+      return;
+    }
+
+    const leadsToExport = savedLeads.filter(item => {
+      const dateKey = item.savedAt ? item.savedAt.substring(0, 10) : 'Sebelumnya';
+      return checkedDates.includes(dateKey);
+    });
+
+    if (leadsToExport.length === 0) {
+      showToast('Tidak ada data untuk diexport dengan tanggal terpilih.', 'warning');
+      return;
+    }
+
     showToast('Generating export...', 'info');
 
     try {
@@ -1004,7 +1051,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          leads: savedLeads,
+          leads: leadsToExport,
           basketColumns: basketCols
         })
       });
@@ -1032,6 +1079,22 @@
   // ========================
   // Event Bindings
   // ========================
+  if (chkBasketSelectAll) {
+    chkBasketSelectAll.addEventListener('change', (e) => {
+      const checked = e.target.checked;
+      const checkboxes = document.querySelectorAll('.basket-group-checkbox');
+      checkboxes.forEach(cb => {
+        cb.checked = checked;
+        const dateKey = cb.getAttribute('data-date');
+        if (checked) {
+          uncheckedDates.delete(dateKey);
+        } else {
+          uncheckedDates.add(dateKey);
+        }
+      });
+    });
+  }
+
   btnSaveAllBasket.addEventListener('click', saveAllLeadsToBasket);
   btnBasketClear.addEventListener('click', clearBasket);
 
@@ -1065,3 +1128,6 @@
     }
   });
 })();
+
+
+

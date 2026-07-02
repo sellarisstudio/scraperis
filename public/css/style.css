@@ -1,4 +1,4 @@
-/* ==========================================================================
+﻿/* ==========================================================================
    ScrapMap - Flat Premium Design System (Shadow-free)
    Atomic Design Architecture & CSS Styling
    ========================================================================== */
@@ -267,20 +267,82 @@ select.a-form-input {
 
 /* Checkbox Atoms */
 .a-checkbox-label {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: var(--space-2);
   font-size: var(--font-size-sm);
   color: var(--color-text-primary);
-  cursor: pointer;
   user-select: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: color var(--transition-fast);
+}
+
+.a-checkbox-label:hover {
+  color: var(--color-accent-hover);
 }
 
 .a-checkbox-input {
+  appearance: none;
+  -webkit-appearance: none;
   width: 16px;
   height: 16px;
   cursor: pointer;
-  accent-color: var(--color-accent);
+  border: 2px solid var(--color-border);
+  border-radius: 4px;
+  background: var(--color-surface);
+  position: relative;
+  transition: all var(--transition-fast) ease-in-out;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  vertical-align: middle;
+}
+
+/* Hover state */
+.a-checkbox-input:hover {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-light);
+}
+
+/* Checked state */
+.a-checkbox-input:checked {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.a-checkbox-input:checked::before {
+  content: "";
+  display: block;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg) translate(-1px, -1px);
+  box-sizing: border-box;
+}
+
+/* Indeterminate state */
+.a-checkbox-input:indeterminate {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.a-checkbox-input:indeterminate::before {
+  content: "";
+  display: block;
+  width: 8px;
+  height: 2px;
+  background: white;
+  box-sizing: border-box;
+}
+
+/* Focus state */
+.a-checkbox-input:focus-visible {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-light);
 }
 
 /* Form labels */
@@ -1165,3 +1227,4 @@ svg.lucide.icon-inline {
   border-bottom: 1px solid var(--color-border) !important;
   border-radius: var(--radius-md) !important;
 }
+
