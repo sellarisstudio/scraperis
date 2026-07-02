@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ScrapMap - Frontend Application
  * Handles search, SSE streaming, results rendering, and exports.
  */
@@ -70,6 +70,9 @@
   let activeScraperMode = 'maps';
   let savedLeads = [];
   let uncheckedDates = new Set();
+  let sequenceActive = false;
+  let subJobResults = [];
+  let cancelRequested = false;
 
   try {
     savedLeads = JSON.parse(localStorage.getItem('scraperis_basket') || localStorage.getItem('scrapmap_basket')) || [];
@@ -200,6 +203,7 @@
   });
 
   function switchMode(mode) {
+    if (sequenceActive) return; // Prevent switching mode while scraping
     if (mode === activeScraperMode) return;
     activeScraperMode = mode;
     searchModeInput.value = mode;
@@ -210,16 +214,16 @@
       searchExtraFields.style.display = 'none';
 
       labelQuery.textContent = '🔍 Business Keyword';
-      hintQuery.textContent = 'What type of business are you looking for?';
-      searchQuery.placeholder = 'e.g. kedai kopi, esteh, toko kelontong';
+      hintQuery.textContent = 'What type of business are you looking for? (One keyword per line)';
+      searchQuery.placeholder = 'e.g. Kedai kopi\nCoffee shop\nCafe';
     } else {
       modeMapsBtn.classList.remove('active');
       modeSearchBtn.classList.add('active');
       searchExtraFields.style.display = 'grid';
 
       labelQuery.textContent = '🔍 Search Keyword (Category)';
-      hintQuery.textContent = 'What business category/niche to look for?';
-      searchQuery.placeholder = 'e.g. coffee, esteh, toko';
+      hintQuery.textContent = 'What business category/niche to look for? (One keyword per line)';
+      searchQuery.placeholder = 'e.g. Coffee\nEsteh\nToko';
     }
   }
 
@@ -247,10 +251,37 @@
   searchForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const query = searchQuery.value.trim();
-    const location = searchLocation.value.trim();
+    if (sequenceActive) {
+      // Handle stop request
+      cancelRequested = true;
+      showToast('Stopping scrape sequence...', 'info');
+
+      if (currentJobId) {
+        try {
+          await fetch(`/api/scrape/${currentJobId}`, { method: 'DELETE' });
+        } catch (err) {
+          console.error('Error canceling current job:', err);
+        }
+      }
+
+      if (eventSource) {
+        eventSource.close();
+        eventSource = null;
+      }
+
+      sequenceActive = false;
+      setFormLoading(false);
+
+      progressStatusText.textContent = 'Scraping stopped by user.';
+      statusDot.className = 'status-dot error';
+      return;
+    }
+
+    const queries = searchQuery.value.split('\n').map(q => q.trim()).filter(Boolean);
+    const locations = searchLocation.value.split('\n').map(l => l.trim()).filter(Boolean);
     const maxResults = parseInt(maxResultsSlider.value);
     const mode = searchModeInput.value;
+    const autoSaveBasket = document.getElementById('chk-auto-save-basket')?.checked || false;
 
     let platform = '';
     let contactPrefix = '';
@@ -267,15 +298,17 @@
       }
     }
 
-    if (!query || !location) {
-      showToast('Please fill in both keyword and location.', 'error');
+    if (queries.length === 0 || locations.length === 0) {
+      showToast('Please fill in both keywords and locations.', 'error');
       return;
     }
 
-    // Disable form
+    // Set state
+    sequenceActive = true;
+    cancelRequested = false;
     setFormLoading(true);
 
-    // Reset state
+    // Reset global results and UI
     results = [];
     resultsTbody.innerHTML = '';
     progressLogs.innerHTML = '';
@@ -283,10 +316,10 @@
     progressBar.classList.remove('done');
     progressPercent.textContent = '0%';
     statusDot.className = 'status-dot';
-    progressStatusText.textContent = 'Starting...';
+    progressStatusText.textContent = 'Starting sequence...';
     statFound.textContent = '0';
-    statQuery.textContent = mode === 'search' ? `${platform} -> ${query}` : query;
-    statLocation.textContent = location;
+    statQuery.textContent = mode === 'search' ? `${platform} -> ${queries[0]}` : queries[0];
+    statLocation.textContent = locations[0];
     emptyState.style.display = 'none';
 
     // Render appropriate table header
@@ -299,44 +332,269 @@
     // Disable export
     btnExportCsv.disabled = true;
     btnExportExcel.disabled = true;
+    btnSaveAllBasket.disabled = true;
 
     // Scroll to progress
     progressSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
     try {
-      // Start scraping
-      const response = await fetch('/api/scrape', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          query,
-          location,
-          maxResults,
-          mode,
-          platform,
-          contactPrefix,
-        }),
-      });
+      const totalSteps = queries.length * locations.length;
+      let currentStep = 0;
 
-      if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.error || 'Failed to start scraping');
+      for (let qIdx = 0; qIdx < queries.length; qIdx++) {
+        const query = queries[qIdx];
+
+        for (let lIdx = 0; lIdx < locations.length; lIdx++) {
+          const location = locations[lIdx];
+
+          if (cancelRequested) {
+            break;
+          }
+
+          currentStep++;
+
+          // Update status stats
+          statQuery.textContent = mode === 'search' ? `${platform} -> ${query}` : query;
+          statLocation.textContent = location;
+          progressStatusText.textContent = `Scraping [${currentStep}/${totalSteps}]: ${query} in ${location}...`;
+
+          addLogEntry(`--------------------------------------------------`);
+          addLogEntry(`🚀 [${currentStep}/${totalSteps}] Scraping: "${query}" in "${location}"`);
+          addLogEntry(`--------------------------------------------------`);
+
+          // Start current sub-job and wait for it
+          subJobResults = [];
+
+          const success = await runSubJob(query, location, maxResults, mode, platform, contactPrefix, currentStep, totalSteps);
+
+          if (cancelRequested) {
+            break;
+          }
+
+          if (success) {
+            addLogEntry(`✅ Finished scraping "${query}" in "${location}". Found ${subJobResults.length} leads.`);
+
+            // Auto save to basket if enabled
+            if (autoSaveBasket && subJobResults.length > 0) {
+              addLogEntry(`📥 Auto-saving ${subJobResults.length} leads to Leads Basket...`);
+              saveSubJobLeadsToBasket(subJobResults);
+            }
+          } else {
+            addLogEntry(`⚠️ Sub-job failed or ended with warning for "${query}" in "${location}".`);
+          }
+        }
+        if (cancelRequested) {
+          break;
+        }
       }
 
-      const data = await response.json();
-      currentJobId = data.id;
+      // Sequence completed or stopped
+      sequenceActive = false;
+      setFormLoading(false);
 
-      showToast(`Scraping started via ${mode === 'search' ? 'Google Search' : 'Google Maps'}`, 'success');
+      if (cancelRequested) {
+        progressStatusText.textContent = 'Scraping sequence stopped.';
+        statusDot.className = 'status-dot error';
+        showToast('Scraping sequence stopped.', 'warning');
+      } else {
+        progressBar.classList.add('done');
+        statusDot.classList.add('done');
+        progressStatusText.textContent = `Scraping complete! Found ${results.length} total businesses.`;
+        updateProgress(100);
+        showToast(`All jobs completed! Found ${results.length} total leads.`, 'success');
+      }
 
-      // Connect to SSE stream
-      connectSSE(currentJobId);
+      if (results.length > 0) {
+        btnExportCsv.disabled = false;
+        btnExportExcel.disabled = false;
+        btnSaveAllBasket.disabled = false;
+      }
+
     } catch (err) {
+      sequenceActive = false;
       setFormLoading(false);
       showToast(err.message, 'error');
       progressStatusText.textContent = 'Error: ' + err.message;
-      statusDot.classList.add('error');
+      statusDot.className = 'status-dot error';
     }
   });
+
+  function runSubJob(query, location, maxResults, mode, platform, contactPrefix, currentStep, totalSteps) {
+    return new Promise(async (resolve) => {
+      try {
+        const response = await fetch('/api/scrape', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            query,
+            location,
+            maxResults,
+            mode,
+            platform,
+            contactPrefix,
+          }),
+        });
+
+        if (!response.ok) {
+          const err = await response.json();
+          addLogEntry(`❌ Server error: ${err.error}`);
+          resolve(false);
+          return;
+        }
+
+        const data = await response.json();
+        currentJobId = data.id;
+
+        // Connect SSE with resolver
+        connectSubJobSSE(currentJobId, resolve, currentStep, totalSteps);
+      } catch (err) {
+        addLogEntry(`❌ Connection error: ${err.message}`);
+        resolve(false);
+      }
+    });
+  }
+
+  function connectSubJobSSE(jobId, resolve, currentStep, totalSteps) {
+    if (eventSource) {
+      eventSource.close();
+    }
+
+    eventSource = new EventSource(`/api/scrape/${jobId}/stream`);
+
+    eventSource.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data);
+        handleSubJobSSEEvent(payload, resolve, currentStep, totalSteps);
+      } catch (err) {
+        console.error('SSE parse error:', err);
+      }
+    };
+
+    eventSource.onerror = () => {
+      if (eventSource) {
+        eventSource.close();
+        eventSource = null;
+      }
+      resolve(false);
+    };
+  }
+
+  function handleSubJobSSEEvent(payload, resolve, currentStep, totalSteps) {
+    const { event, data } = payload;
+
+    switch (event) {
+      case 'init':
+        if (data.progress) {
+          updateSubJobProgress(data.progress, currentStep, totalSteps);
+        }
+        if (data.results && data.results.length > 0) {
+          data.results.forEach((r) => {
+            const isDuplicate = results.some(item => 
+              (activeScraperMode === 'search' && item.url === r.url && item.title === r.title) ||
+              (activeScraperMode === 'maps' && item.name === r.name && item.address === r.address)
+            );
+            if (!isDuplicate) {
+              addResultRow(r);
+              subJobResults.push(r);
+            }
+          });
+        }
+        if (data.logs) {
+          data.logs.forEach((log) => addLogEntry(log.message));
+        }
+        break;
+
+      case 'progress':
+        updateSubJobProgress(data.progress, currentStep, totalSteps);
+        if (data.message) addLogEntry(data.message);
+        break;
+
+      case 'result':
+        const r = data.result;
+        const isDuplicate = results.some(item => 
+          (activeScraperMode === 'search' && item.url === r.url && item.title === r.title) ||
+          (activeScraperMode === 'maps' && item.name === r.name && item.address === r.address)
+        );
+        if (!isDuplicate) {
+          addResultRow(r);
+          subJobResults.push(r);
+          statFound.textContent = results.length;
+        }
+        break;
+
+      case 'status':
+        if (data.status === 'completed') {
+          if (eventSource) {
+            eventSource.close();
+            eventSource = null;
+          }
+          resolve(true);
+        } else if (data.status === 'failed') {
+          if (eventSource) {
+            eventSource.close();
+            eventSource = null;
+          }
+          resolve(false);
+        }
+        break;
+
+      case 'error':
+        addLogEntry(`❌ Scraper error: ${data.error}`);
+        if (eventSource) {
+          eventSource.close();
+          eventSource = null;
+        }
+        resolve(false);
+        break;
+
+      case 'done':
+        if (eventSource) {
+          eventSource.close();
+          eventSource = null;
+        }
+        resolve(true);
+        break;
+    }
+  }
+
+  function updateSubJobProgress(subPercent, currentStep, totalSteps) {
+    const overallPercent = (((currentStep - 1) + (subPercent / 100)) / totalSteps) * 100;
+    const p = Math.min(Math.round(overallPercent), 100);
+    progressBar.style.width = p + '%';
+    progressPercent.textContent = p + '%';
+  }
+
+  function saveSubJobLeadsToBasket(subResults) {
+    if (!subResults || subResults.length === 0) return;
+
+    let addedCount = 0;
+    const now = new Date().toISOString();
+    subResults.forEach((lead) => {
+      if (!lead.phone) return;
+
+      const basketItem = {
+        name: lead.name || lead.title || '—',
+        category: lead.category || lead.platform || '—',
+        phone: lead.phone,
+        address: lead.address || lead.snippet || '—',
+        source: lead.mapsUrl ? 'Maps' : 'Search',
+        url: lead.mapsUrl || lead.website || lead.url || '',
+        savedAt: now
+      };
+
+      const exists = savedLeads.some((item) => item.phone === basketItem.phone);
+      if (!exists) {
+        savedLeads.push(basketItem);
+        addedCount++;
+      }
+    });
+
+    if (addedCount > 0) {
+      saveBasket();
+      renderBasketTable();
+      showToast(`Auto-saved ${addedCount} new leads to basket!`, 'success');
+    }
+  }
 
   // ========================
   // SSE Connection
@@ -683,17 +941,32 @@
   // Form UI Helpers
   // ========================
   function setFormLoading(loading) {
-    btnScrape.disabled = loading;
     searchQuery.disabled = loading;
     searchLocation.disabled = loading;
     maxResultsSlider.disabled = loading;
+    modeMapsBtn.disabled = loading;
+    modeSearchBtn.disabled = loading;
+    searchPlatformSelect.disabled = loading;
+    searchPlatformCustom.disabled = loading;
+    searchContactInput.disabled = loading;
 
     if (loading) {
-      btnText.style.display = 'none';
-      btnSpinner.style.display = 'block';
-    } else {
-      btnText.style.display = 'inline';
+      btnScrape.classList.remove('a-btn-primary');
+      btnScrape.classList.add('a-btn-danger');
+      btnText.innerHTML = '<i data-lucide="square" class="icon-sm"></i> Stop Scraping';
       btnSpinner.style.display = 'none';
+    } else {
+      btnScrape.classList.add('a-btn-primary');
+      btnScrape.classList.remove('a-btn-danger');
+      btnText.innerHTML = '<i data-lucide="play" class="icon-sm"></i> Start Scraping';
+      btnSpinner.style.display = 'none';
+    }
+
+    if (window.lucide) {
+      window.lucide.createIcons({
+        nameAttr: 'data-lucide',
+        root: btnScrape
+      });
     }
   }
 

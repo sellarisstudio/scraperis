@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
@@ -99,31 +99,29 @@
                 <label class="a-form-label" for="search-query" id="label-query">
                   <i data-lucide="search" class="icon-inline"></i> Business Keyword
                 </label>
-                <input
-                  type="text"
+                <textarea
                   class="a-form-input"
                   id="search-query"
                   name="query"
-                  placeholder="e.g. kedai kopi, esteh, toko kelontong"
+                  placeholder="e.g. Kedai kopi&#10;Coffee shop&#10;Cafe"
                   required
-                  autocomplete="off"
-                >
-                <span class="a-form-hint" id="hint-query">What type of business are you looking for?</span>
+                  rows="5"
+                ></textarea>
+                <span class="a-form-hint" id="hint-query">What type of business are you looking for? (One keyword per line)</span>
               </div>
               <div class="m-form-group">
                 <label class="a-form-label" for="search-location">
                   <i data-lucide="map-pin" class="icon-inline"></i> Location
                 </label>
-                <input
-                  type="text"
+                <textarea
                   class="a-form-input"
                   id="search-location"
                   name="location"
-                  placeholder="e.g. Jakarta Selatan, Bandung, Surabaya"
+                  placeholder="e.g. Kayumanis&#10;Sindang Barang&#10;Gunung Batu"
                   required
-                  autocomplete="off"
-                >
-                <span class="a-form-hint">City, area, or specific neighborhood</span>
+                  rows="5"
+                ></textarea>
+                <span class="a-form-hint">City, area, or specific neighborhood (One location per line)</span>
               </div>
             </div>
 
@@ -189,6 +187,13 @@
                 <span class="a-form-hint">5</span>
                 <span class="a-form-hint">500</span>
               </div>
+            </div>
+
+            <div class="m-form-group" style="margin-top: var(--space-4); margin-bottom: var(--space-4);">
+              <label class="a-checkbox-label">
+                <input type="checkbox" class="a-checkbox-input" id="chk-auto-save-basket" checked>
+                <span><i data-lucide="archive" class="icon-inline" style="margin-right: 4px;"></i> Simpan langsung ke Leads Basket setelah setiap lokasi selesai</span>
+              </label>
             </div>
 
             <div class="m-form-actions">

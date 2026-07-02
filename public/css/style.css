@@ -1,4 +1,4 @@
-﻿/* ==========================================================================
+/* ==========================================================================
    ScrapMap - Flat Premium Design System (Shadow-free)
    Atomic Design Architecture & CSS Styling
    ========================================================================== */
@@ -1226,5 +1226,12 @@ svg.lucide.icon-inline {
 .o-basket-group.collapsed .m-basket-group-header {
   border-bottom: 1px solid var(--color-border) !important;
   border-radius: var(--radius-md) !important;
+}
+
+/* Custom Textarea Styling */
+textarea.a-form-input {
+  min-height: 120px;
+  resize: vertical;
+  line-height: 1.5;
 }
 

@@ -263,6 +263,12 @@ async function scrapeGoogleMaps(jobId, query, location, maxResults = 40) {
     const startTime = Date.now();
 
     while (true) {
+      // Check for cancellation
+      const currentJob = jobManager.getJob(jobId);
+      if (!currentJob || currentJob.status === 'failed') {
+        throw new Error('Job cancelled');
+      }
+
       // Count current visible listings
       const listings = page.locator('div[role="feed"] > div > div > a[href*="/maps/place"]');
       const currentCount = await listings.count();
@@ -348,6 +354,12 @@ async function scrapeGoogleMaps(jobId, query, location, maxResults = 40) {
 
     // Visit each listing URL directly — no more click-back dance
     for (let i = 0; i < totalListings; i++) {
+      // Check for cancellation
+      const currentJob = jobManager.getJob(jobId);
+      if (!currentJob || currentJob.status === 'failed') {
+        throw new Error('Job cancelled');
+      }
+
       const listingUrl = listingUrls[i];
 
       try {

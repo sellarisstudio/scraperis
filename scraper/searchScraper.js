@@ -136,6 +136,12 @@ async function scrapeGoogleSearch(jobId, platform, category, location, contactPr
     let hasNextPage = true;
 
     while (resultsCount < maxResults && hasNextPage) {
+      // Check for cancellation
+      const currentJob = jobManager.getJob(jobId);
+      if (!currentJob || currentJob.status === 'failed') {
+        throw new Error('Job cancelled');
+      }
+
       jobManager.updateProgress(
         jobId,
         Math.min(20 + (resultsCount / maxResults) * 70, 90),
@@ -180,6 +186,12 @@ async function scrapeGoogleSearch(jobId, platform, category, location, contactPr
 
       // Process and filter each result
       for (const res of searchResults) {
+        // Check for cancellation
+        const currentJob = jobManager.getJob(jobId);
+        if (!currentJob || currentJob.status === 'failed') {
+          throw new Error('Job cancelled');
+        }
+
         if (resultsCount >= maxResults) break;
 
         // Combine title and snippet to extract phone numbers
