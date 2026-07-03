@@ -1,22 +1,22 @@
 <div align="center">
-  <img src="public/images/logo-full.png" alt="Scraperis Logo" width="350" style="margin-bottom: 20px;" />
+  <img src="public/images/logo-fullcolor.png" alt="Scraperis Logo" width="350" style="margin-bottom: 20px;" />
 
-  # Scraperis 🚀
-  
-  **Automated Google Maps & Google Search Business Lead Extractor**
+# Scraperis 🚀
 
-  [![GitHub Downloads](https://img.shields.io/github/downloads/sellarisstudio/scraperis/total?style=for-the-badge&color=4169E1)](https://github.com/sellarisstudio/scraperis/releases)
-  [![GitHub Stars](https://img.shields.io/github/stars/sellarisstudio/scraperis?style=for-the-badge&color=FFD700)](https://github.com/sellarisstudio/scraperis/stargazers)
-  [![GitHub Forks](https://img.shields.io/github/forks/sellarisstudio/scraperis?style=for-the-badge&color=FF8C00)](https://github.com/sellarisstudio/scraperis/network/members)
-  [![Visitors](https://komarev.com/ghpvc/?username=sellarisstudio-scraperis&color=8A2BE2&style=for-the-badge&label=VISITORS)](https://github.com/sellarisstudio/scraperis)
-  [![License](https://img.shields.io/badge/License-MIT-32CD32?style=for-the-badge)](https://github.com/sellarisstudio/scraperis/blob/main/LICENSE)
+**Automated Google Maps & Google Search Business Lead Extractor**
+
+[![GitHub Downloads](https://img.shields.io/github/downloads/sellarisstudio/scraperis/total?style=for-the-badge&color=4169E1)](https://github.com/sellarisstudio/scraperis/releases)
+[![GitHub Stars](https://img.shields.io/github/stars/sellarisstudio/scraperis?style=for-the-badge&color=FFD700)](https://github.com/sellarisstudio/scraperis/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/sellarisstudio/scraperis?style=for-the-badge&color=FF8C00)](https://github.com/sellarisstudio/scraperis/network/members)
+[![Visitors](https://komarev.com/ghpvc/?username=sellarisstudio-scraperis&color=8A2BE2&style=for-the-badge&label=VISITORS)](https://github.com/sellarisstudio/scraperis)
+[![License](https://img.shields.io/badge/License-MIT-32CD32?style=for-the-badge)](https://github.com/sellarisstudio/scraperis/blob/main/LICENSE)
 
   <br/>
 
-  [![Playwright](https://img.shields.io/badge/Playwright-31C653?style=for-the-badge&logo=playwright&logoColor=white)](https://playwright.dev)
-  [![Electron](https://img.shields.io/badge/Electron-4784F6?style=for-the-badge&logo=electron&logoColor=white)](https://electronjs.org)
-  [![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org)
-  [![Express](https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com)
+[![Playwright](https://img.shields.io/badge/Playwright-31C653?style=for-the-badge&logo=playwright&logoColor=white)](https://playwright.dev)
+[![Electron](https://img.shields.io/badge/Electron-4784F6?style=for-the-badge&logo=electron&logoColor=white)](https://electronjs.org)
+[![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org)
+[![Express](https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com)
 
 </div>
 
@@ -36,7 +36,7 @@ Features a modern glassmorphic web dashboard with real-time scraping progress, l
 
 ## ✨ Key Features
 
-- **Dual Scraping Modes**: 
+- **Dual Scraping Modes**:
   - 🗺️ **Google Maps Scraper**: Extracts business names, categories, ratings, reviews, addresses, phone numbers, website links, and maps URLs.
   - 🌐 **Google Search Scraper**: Targets social media platforms (Instagram, Facebook, TikTok, LinkedIn, or custom domains) with specific categories and contact prefixes (e.g. WhatsApp, WA.me) to grab contact info.
 - **Sequence Scraping (Multi-Keywords & Multi-Locations)**: Input multiple keywords and locations (separated by newlines) inside textareas. Scraperis runs sequentially through every combination.
@@ -47,7 +47,7 @@ Features a modern glassmorphic web dashboard with real-time scraping progress, l
 
 ---
 
-## � Demo & Screenshots
+## 📸 Demo & Screenshots
 
 <div align="center">
   <p><strong>Scraperis Interface & Features in Action</strong></p>
@@ -82,27 +82,32 @@ Features a modern glassmorphic web dashboard with real-time scraping progress, l
 
 ---
 
-## �💻 Developer Installation & Run
+## 💻 Developer Installation & Run
 
 To run Scraperis in your local development environment:
 
 ### Prerequisites
+
 Make sure you have [Node.js](https://nodejs.org/) (v16+ recommended) installed on your system.
 
 ### Steps
+
 1. **Clone the Repository**:
+
    ```bash
    git clone https://github.com/your-username-or-organization/scraperis.git
    cd scraperis
    ```
 
 2. **Install Dependencies**:
+
    ```bash
    npm install
    ```
 
 3. **Install Playwright Chromium Browser**:
    Install the required browser binary and its dependencies on your machine:
+
    ```bash
    npm run install-browser
    ```
@@ -112,9 +117,11 @@ Make sure you have [Node.js](https://nodejs.org/) (v16+ recommended) installed o
 
 5. **Run the Development Server**:
    To start the backend server with watch mode enabled:
+
    ```bash
    npm run dev
    ```
+
    Open your browser and navigate to `http://localhost:3000`.
 
 6. **Run as Desktop App (Electron)**:
@@ -128,9 +135,11 @@ Make sure you have [Node.js](https://nodejs.org/) (v16+ recommended) installed o
 ## 📦 How to Compile/Build for Windows
 
 If you want to package the app into a standalone Windows executable (`.exe` installer):
+
 ```bash
 npm run build:win
 ```
+
 This script runs `electron-builder` to package the application. The compiled installer executable will be saved in the `dist/` directory, typically named `Scraperis Setup <version>.exe`.
 
 ---
@@ -140,6 +149,7 @@ This script runs `electron-builder` to package the application. The compiled ins
 If you just want to use the application without setting up Node.js, you can download the ready-to-run `.exe` installer directly from the [GitHub Releases page](https://github.com/sellarisstudio/scraperis/releases).
 
 ### Steps:
+
 1. **Go to Releases**:
    Go directly to the [GitHub Releases page](https://github.com/sellarisstudio/scraperis/releases).
 2. **Download the Installer**:
@@ -156,4 +166,5 @@ If you just want to use the application without setting up Node.js, you can down
 ---
 
 ## 📄 License
+
 This project is licensed under the [MIT License](LICENSE).
