@@ -81,6 +81,14 @@
           <span class="a-nav-icon"><i data-lucide="settings"></i></span>
           <span class="a-nav-label">Configuration</span>
         </button>
+        <button type="button" class="a-nav-item" id="nav-about-btn">
+          <span class="a-nav-icon"><i data-lucide="info"></i></span>
+          <span class="a-nav-label">About</span>
+        </button>
+        <button type="button" class="a-nav-item" id="nav-license-btn">
+          <span class="a-nav-icon"><i data-lucide="file-text"></i></span>
+          <span class="a-nav-label">License</span>
+        </button>
       </nav>
 
       <div class="o-sidebar-footer">
@@ -655,6 +663,170 @@
             </div>
           </div>
 
+        </section>
+      </div>
+
+      <!-- ==========================================
+           VIEW 4: ABOUT PANEL
+           ========================================== -->
+      <div class="view-panel" id="view-about">
+        <section class="o-panel active">
+          <div class="m-panel-header">
+            <h2 class="a-panel-title">
+              <i data-lucide="info" class="icon-accent"></i> About Scraperis
+            </h2>
+          </div>
+          <div style="max-width: 800px; line-height: 1.6; color: var(--color-text-secondary);">
+            <div style="margin-bottom: var(--space-6); text-align: center; padding: var(--space-6) 0;">
+              <img src="/images/logo-fullcolor.png" alt="Scraperis Logo" style="max-width: 200px; margin-bottom: var(--space-4);">
+              <h3 style="font-size: var(--font-size-lg); color: var(--color-text); margin-bottom: var(--space-2);">Scraperis 🚀</h3>
+              <p style="font-size: var(--font-size-sm);">Automated Google Maps & Google Search Business Lead Extractor</p>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--space-4); margin-bottom: var(--space-6);">
+              <div style="background: var(--color-surface); padding: var(--space-4); border-radius: var(--radius-md); border: 1px solid var(--color-border);">
+                <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2);">
+                  <i data-lucide="zap" style="width: 20px; height: 20px; color: var(--color-accent);"></i>
+                  <strong>Powerful</strong>
+                </div>
+                <p style="font-size: var(--font-size-sm);">Built with Playwright for reliable browser automation and data extraction.</p>
+              </div>
+              <div style="background: var(--color-surface); padding: var(--space-4); border-radius: var(--radius-md); border: 1px solid var(--color-border);">
+                <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2);">
+                  <i data-lucide="shield" style="width: 20px; height: 20px; color: var(--color-accent);"></i>
+                  <strong>Open Source</strong>
+                </div>
+                <p style="font-size: var(--font-size-sm);">MIT License. Free to use, modify, and distribute for any purpose.</p>
+              </div>
+              <div style="background: var(--color-surface); padding: var(--space-4); border-radius: var(--radius-md); border: 1px solid var(--color-border);">
+                <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2);">
+                  <i data-lucide="code" style="width: 20px; height: 20px; color: var(--color-accent);"></i>
+                  <strong>Developer Friendly</strong>
+                </div>
+                <p style="font-size: var(--font-size-sm);">Built with Node.js, Express, and modern web technologies.</p>
+              </div>
+            </div>
+
+            <div style="margin-bottom: var(--space-6);">
+              <h4 style="color: var(--color-text); margin-bottom: var(--space-3);"><strong>Key Features</strong></h4>
+              <ul style="list-style: none; padding: 0; margin: 0;">
+                <li style="margin-bottom: var(--space-2); display: flex; gap: var(--space-2);">
+                  <span style="color: var(--color-accent);">✓</span>
+                  <span><strong>Dual Scraping Modes:</strong> Google Maps and Google Search with social media targeting</span>
+                </li>
+                <li style="margin-bottom: var(--space-2); display: flex; gap: var(--space-2);">
+                  <span style="color: var(--color-accent);">✓</span>
+                  <span><strong>Multi-Keyword & Multi-Location:</strong> Scrape combinations of keywords and locations</span>
+                </li>
+                <li style="margin-bottom: var(--space-2); display: flex; gap: var(--space-2);">
+                  <span style="color: var(--color-accent);">✓</span>
+                  <span><strong>Leads Basket:</strong> Accumulate and manage leads from multiple runs</span>
+                </li>
+                <li style="margin-bottom: var(--space-2); display: flex; gap: var(--space-2);">
+                  <span style="color: var(--color-accent);">✓</span>
+                  <span><strong>CSV & Excel Export:</strong> Export with customizable columns</span>
+                </li>
+                <li style="margin-bottom: var(--space-2); display: flex; gap: var(--space-2);">
+                  <span style="color: var(--color-accent);">✓</span>
+                  <span><strong>Real-time Progress:</strong> Monitor scraping with live logs and visualization</span>
+                </li>
+              </ul>
+            </div>
+
+            <div style="margin-bottom: var(--space-6);">
+              <h4 style="color: var(--color-text); margin-bottom: var(--space-3);"><strong>Project Details</strong></h4>
+              <ul style="list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-4);">
+                <li>
+                  <div style="font-size: var(--font-size-xs); color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Creator</div>
+                  <div style="color: var(--color-text); font-weight: 500;">Sellaris Studio</div>
+                </li>
+                <li>
+                  <div style="font-size: var(--font-size-xs); color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">License</div>
+                  <div style="color: var(--color-text); font-weight: 500;">MIT License</div>
+                </li>
+                <li>
+                  <div style="font-size: var(--font-size-xs); color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Status</div>
+                  <div style="color: var(--color-text); font-weight: 500;">Open Source & Free</div>
+                </li>
+              </ul>
+            </div>
+
+            <div style="border-top: 1px solid var(--color-border); padding-top: var(--space-4);">
+              <h4 style="color: var(--color-text); margin-bottom: var(--space-3);"><strong>Get Involved</strong></h4>
+              <div style="display: flex; gap: var(--space-3); flex-wrap: wrap;">
+                <a href="https://github.com/sellarisstudio/scraperis" target="_blank" rel="noopener noreferrer" class="a-btn a-btn-secondary">
+                  <i data-lucide="github" class="icon-sm"></i> GitHub Repository
+                </a>
+                <a href="https://github.com/sellarisstudio/scraperis/releases" target="_blank" rel="noopener noreferrer" class="a-btn a-btn-secondary">
+                  <i data-lucide="download" class="icon-sm"></i> Download Latest
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ==========================================
+           VIEW 5: LICENSE PANEL
+           ========================================== -->
+      <div class="view-panel" id="view-license">
+        <section class="o-panel active">
+          <div class="m-panel-header">
+            <h2 class="a-panel-title">
+              <i data-lucide="file-text" class="icon-accent"></i> License
+            </h2>
+            <p style="font-size: var(--font-size-xs); color: var(--color-text-secondary); margin-top: 2px;">
+              Scraperis is distributed under the MIT License
+            </p>
+          </div>
+          <div style="max-width: 900px;">
+            <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-6); font-family: 'Courier New', monospace; font-size: var(--font-size-sm); line-height: 1.6; overflow-x: auto; color: var(--color-text-secondary);">
+              <pre style="margin: 0; white-space: pre-wrap; word-wrap: break-word;">MIT License
+
+Copyright (c) 2026 sellarisstudio
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.</pre>
+            </div>
+            <div style="margin-top: var(--space-6); padding-top: var(--space-4); border-top: 1px solid var(--color-border);">
+              <p style="font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-bottom: var(--space-3);">
+                <strong>What does this license mean?</strong>
+              </p>
+              <ul style="list-style: none; padding: 0; margin: 0;">
+                <li style="margin-bottom: var(--space-2); display: flex; gap: var(--space-2);">
+                  <span style="color: var(--color-accent); flex-shrink: 0;">✓</span>
+                  <span style="font-size: var(--font-size-sm);"><strong>Use:</strong> You can use this software for any purpose</span>
+                </li>
+                <li style="margin-bottom: var(--space-2); display: flex; gap: var(--space-2);">
+                  <span style="color: var(--color-accent); flex-shrink: 0;">✓</span>
+                  <span style="font-size: var(--font-size-sm);"><strong>Modify:</strong> You can modify the source code as you wish</span>
+                </li>
+                <li style="margin-bottom: var(--space-2); display: flex; gap: var(--space-2);">
+                  <span style="color: var(--color-accent); flex-shrink: 0;">✓</span>
+                  <span style="font-size: var(--font-size-sm);"><strong>Distribute:</strong> You can distribute copies of this software</span>
+                </li>
+                <li style="margin-bottom: var(--space-2); display: flex; gap: var(--space-2);">
+                  <span style="color: var(--color-accent); flex-shrink: 0;">⚠</span>
+                  <span style="font-size: var(--font-size-sm);"><strong>Conditions:</strong> The software is provided "as is" with no warranty</span>
+                </li>
+              </ul>
+            </div>
+          </div>
         </section>
       </div>
 

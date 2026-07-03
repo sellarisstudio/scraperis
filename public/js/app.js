@@ -156,6 +156,15 @@
     });
   }
 
+  // ========================
+  // Helper: Get Current Date/Time in Jakarta Timezone
+  // ========================
+  function getJakartaDateTime() {
+    const now = new Date();
+    const jakartaTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
+    return jakartaTime.toISOString();
+  }
+
   function getAllLeadsFromDB() {
     return getDB().then((db) => {
       return new Promise((resolve, reject) => {
@@ -253,36 +262,26 @@
   const navScraperBtn = document.getElementById("nav-scraper-btn");
   const navBasketBtn = document.getElementById("nav-basket-btn");
   const navConfigBtn = document.getElementById("nav-config-btn");
+  const navAboutBtn = document.getElementById("nav-about-btn");
+  const navLicenseBtn = document.getElementById("nav-license-btn");
   const viewScraper = document.getElementById("view-scraper");
   const viewBasket = document.getElementById("view-basket");
   const viewConfig = document.getElementById("view-config");
+  const viewAbout = document.getElementById("view-about");
+  const viewLicense = document.getElementById("view-license");
 
-  navScraperBtn.addEventListener("click", () => {
-    navScraperBtn.classList.add("active");
-    navBasketBtn.classList.remove("active");
-    navConfigBtn.classList.remove("active");
-    viewScraper.classList.add("active");
-    viewBasket.classList.remove("active");
-    viewConfig.classList.remove("active");
-  });
+  const switchView = (activeBtn, activeView) => {
+    document.querySelectorAll(".a-nav-item").forEach((btn) => btn.classList.remove("active"));
+    document.querySelectorAll(".view-panel").forEach((view) => view.classList.remove("active"));
+    activeBtn.classList.add("active");
+    activeView.classList.add("active");
+  };
 
-  navBasketBtn.addEventListener("click", () => {
-    navBasketBtn.classList.add("active");
-    navScraperBtn.classList.remove("active");
-    navConfigBtn.classList.remove("active");
-    viewBasket.classList.add("active");
-    viewScraper.classList.remove("active");
-    viewConfig.classList.remove("active");
-  });
-
-  navConfigBtn.addEventListener("click", () => {
-    navConfigBtn.classList.add("active");
-    navScraperBtn.classList.remove("active");
-    navBasketBtn.classList.remove("active");
-    viewConfig.classList.add("active");
-    viewScraper.classList.remove("active");
-    viewBasket.classList.remove("active");
-  });
+  navScraperBtn.addEventListener("click", () => switchView(navScraperBtn, viewScraper));
+  navBasketBtn.addEventListener("click", () => switchView(navBasketBtn, viewBasket));
+  navConfigBtn.addEventListener("click", () => switchView(navConfigBtn, viewConfig));
+  navAboutBtn.addEventListener("click", () => switchView(navAboutBtn, viewAbout));
+  navLicenseBtn.addEventListener("click", () => switchView(navLicenseBtn, viewLicense));
 
   // ========================
   // Configuration Tab Switcher
@@ -911,7 +910,7 @@
     if (!subResults || subResults.length === 0) return;
 
     const batchItems = [];
-    const now = new Date().toISOString();
+    const now = getJakartaDateTime();
     subResults.forEach((lead) => {
       if (!lead.phone) return;
 
@@ -1479,7 +1478,7 @@
       address: lead.address || lead.snippet || "—",
       source: lead.mapsUrl ? "Maps" : "Search",
       url: lead.mapsUrl || lead.website || lead.url || "",
-      savedAt: new Date().toISOString(),
+      savedAt: getJakartaDateTime(),
     };
 
     const exists = savedLeads.some((item) => item.phone === basketItem.phone);
@@ -1507,7 +1506,7 @@
     if (results.length === 0) return;
 
     const batchItems = [];
-    const now = new Date().toISOString();
+    const now = getJakartaDateTime();
     results.forEach((lead) => {
       if (!lead.phone) return;
 

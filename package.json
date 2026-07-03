@@ -8,6 +8,7 @@
     "dev": "node --watch server.js",
     "electron:dev": "electron .",
     "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
     "install-browser": "npx playwright install chromium --with-deps"
   },
   "keywords": [
