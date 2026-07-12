@@ -55,26 +55,26 @@ Features a modern glassmorphic web dashboard with real-time scraping progress, l
   <table>
     <tr>
       <td align="center" width="50%">
-        <img src="public/images/scraperis/demo-1.png" alt="Demo 1" width="100%" style="max-width: 450px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+        <img src="src/public/images/scraperis/demo-1.png" alt="Demo 1" width="100%" style="max-width: 450px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
       </td>
       <td align="center" width="50%">
-        <img src="public/images/scraperis/demo-2.png" alt="Demo 2" width="100%" style="max-width: 450px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
-      </td>
-    </tr>
-    <tr>
-      <td align="center" width="50%">
-        <img src="public/images/scraperis/demo-3.png" alt="Demo 3" width="100%" style="max-width: 450px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
-      </td>
-      <td align="center" width="50%">
-        <img src="public/images/scraperis/demo-4.png" alt="Demo 4" width="100%" style="max-width: 450px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+        <img src="src/public/images/scraperis/demo-2.png" alt="Demo 2" width="100%" style="max-width: 450px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
       </td>
     </tr>
     <tr>
       <td align="center" width="50%">
-        <img src="public/images/scraperis/demo-5.png" alt="Demo 5" width="100%" style="max-width: 450px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+        <img src="src/public/images/scraperis/demo-3.png" alt="Demo 3" width="100%" style="max-width: 450px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
       </td>
       <td align="center" width="50%">
-        <img src="public/images/scraperis/demo-6.png" alt="Demo 6" width="100%" style="max-width: 450px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+        <img src="src/public/images/scraperis/demo-4.png" alt="Demo 4" width="100%" style="max-width: 450px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+      </td>
+    </tr>
+    <tr>
+      <td align="center" width="50%">
+        <img src="src/public/images/scraperis/demo-5.png" alt="Demo 5" width="100%" style="max-width: 450px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+      </td>
+      <td align="center" width="50%">
+        <img src="src/public/images/scraperis/demo-6.png" alt="Demo 6" width="100%" style="max-width: 450px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
       </td>
     </tr>
   </table>
