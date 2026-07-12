@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth overflow-x-hidden">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scraperis — Automated Google Maps & Search Business Lead Extractor</title>
+  
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Scraperis is a powerful desktop application built with Electron, Node.js, and Playwright. Automatically scrape, collect, and build a database of business leads from Google Maps and Google Search.">
+  <meta name="keywords" content="scraper, lead generation, google maps scraper, search business lead extractor, electron app, email scraper, B2B leads">
+  
+  <!-- OpenGraph Card -->
+  <meta property="og:title" content="Scraperis — Automated Google Maps & Search Business Lead Extractor">
+  <meta property="og:description" content="Extract business names, ratings, address, phone number, and websites automatically. Features a modern glassmorphic dashboard and export to CSV/Excel.">
+  <meta property="og:image" content="src/public/images/scraperis/demo-1.png">
+  <meta property="og:type" content="website">
+
+  <!-- Fonts: Apple-like sans-serif (Outfit & Plus Jakarta Sans) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            accent: {
+              DEFAULT: '#4ec0ba',
+              hover: '#3ca39e',
+              light: '#f0faf9',
+              border: '#4ec0ba',
+            },
+            slate: {
+              50: '#f8fafc',
+              100: '#f1f5f9',
+              200: '#e2e8f0',
+              300: '#cbd5e1',
+              400: '#94a3b8',
+              500: '#64748b',
+              600: '#475569',
+              900: '#0f172a',
+            }
+          },
+          fontFamily: {
+            display: ['Outfit', 'sans-serif'],
+            body: ['Plus Jakarta Sans', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.400.0/dist/umd/lucide.min.js"></script>
+
+  <style>
+    /* Custom utility styles for Lucide icons to align and size them globally */
+    svg.lucide, .lucide {
+      width: 1.125rem; /* 18px */
+      height: 1.125rem;
+      stroke-width: 2.25px;
+      display: inline-block;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+    .btn svg.lucide {
+      margin-right: 0.375rem; /* 6px */
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 font-body antialiased min-h-screen overflow-x-hidden relative">
+
+  <!-- Background Decorative Blobs -->
+  <div class="absolute inset-0 overflow-hidden pointer-events-none z-[-1]">
+    <div class="absolute top-[5%] left-[5%] w-[450px] h-[450px] rounded-full bg-accent filter blur-[130px] opacity-10"></div>
+    <div class="absolute top-[25%] right-[5%] w-[450px] h-[450px] rounded-full bg-cyan-400 filter blur-[130px] opacity-10"></div>
+    <div class="absolute bottom-[15%] left-[15%] w-[450px] h-[450px] rounded-full bg-teal-300 filter blur-[130px] opacity-10"></div>
+  </div>
+
+  <!-- STICKY HEADER -->
+  <header id="header" class="fixed top-0 left-0 w-full h-20 bg-white/75 backdrop-blur-xl border-b border-slate-100 z-50 transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
+      <!-- Logo -->
+      <a href="#" class="flex items-center gap-3 no-underline">
+        <img src="src/public/images/logo-fullcolor.png" alt="Scraperis Logo" class="h-8 w-auto object-contain">
+        <span class="font-display text-xl font-bold tracking-tight text-slate-900">Scraperis</span>
+      </a>
+
+      <!-- Desktop Links -->
+      <div class="hidden lg:flex items-center gap-2">
+        <a href="#features" class="px-4 py-2 text-sm font-semibold text-slate-600 rounded-full transition hover:text-accent hover:bg-accent-light">Features</a>
+        <a href="#demo" class="px-4 py-2 text-sm font-semibold text-slate-600 rounded-full transition hover:text-accent hover:bg-accent-light">Demo</a>
+        <a href="#install" class="px-4 py-2 text-sm font-semibold text-slate-600 rounded-full transition hover:text-accent hover:bg-accent-light">Install</a>
+        <a href="https://github.com/sellarisstudio/scraperis/releases" target="_blank" class="px-4 py-2 text-sm font-semibold text-slate-600 rounded-full transition hover:text-accent hover:bg-accent-light">Releases</a>
+      </div>
+
+      <!-- Desktop Actions -->
+      <div class="hidden lg:flex items-center gap-4">
+        <a href="https://github.com/sellarisstudio/scraperis/" target="_blank" class="btn px-5 py-2.5 text-sm font-bold bg-slate-900 text-white rounded-full transition hover:bg-slate-800 flex items-center">
+          <i data-lucide="github"></i>
+          <span>GitHub</span>
+        </a>
+        <a href="#install" class="btn px-5 py-2.5 text-sm font-bold bg-accent text-white rounded-full transition hover:bg-accent-hover hover:-translate-y-0.5 shadow-sm hover:shadow-md flex items-center">
+          <i data-lucide="download"></i>
+          <span>Download</span>
+        </a>
+      </div>
+
+      <!-- Hamburger Button (Mobile Only) -->
+      <button class="flex lg:hidden items-center justify-center w-10 h-10 border border-slate-200 rounded-lg text-slate-900 transition hover:bg-accent-light hover:border-accent hover:text-accent-hover" onclick="toggleSidebar()" aria-label="Toggle Navigation Menu">
+        <i data-lucide="menu"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- MOBILE SIDEBAR MENU -->
+  <div id="sidebar-overlay" class="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-[99] opacity-0 pointer-events-none transition-opacity duration-300" onclick="closeSidebar()"></div>
+  <div id="mobile-sidebar" class="fixed inset-y-0 right-0 w-[300px] bg-white/95 backdrop-blur-2xl border-l border-slate-100 z-[100] translate-x-full transition-transform duration-300 ease-out flex flex-col p-6">
+    <div class="flex justify-between items-center mb-8 pb-4 border-b border-slate-100">
+      <a href="#" class="flex items-center gap-3 no-underline" onclick="closeSidebar()">
+        <img src="src/public/images/logo-fullcolor.png" alt="Scraperis Logo" class="h-7 w-auto object-contain">
+        <span class="font-display text-lg font-bold text-slate-900">Scraperis</span>
+      </a>
+      <button class="w-10 h-10 border border-slate-200 rounded-lg text-slate-900 flex items-center justify-center hover:bg-slate-50 transition" onclick="closeSidebar()" aria-label="Close Navigation Menu">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    
+    <div class="flex flex-col gap-3">
+      <a href="#features" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-900 rounded-xl hover:bg-accent-light hover:text-accent-hover transition" onclick="closeSidebar()">
+        <i data-lucide="sparkles" class="text-accent"></i> Features
+      </a>
+      <a href="#demo" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-900 rounded-xl hover:bg-accent-light hover:text-accent-hover transition" onclick="closeSidebar()">
+        <i data-lucide="image" class="text-accent"></i> Demo
+      </a>
+      <a href="#install" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-900 rounded-xl hover:bg-accent-light hover:text-accent-hover transition" onclick="closeSidebar()">
+        <i data-lucide="terminal" class="text-accent"></i> Install
+      </a>
+      <a href="https://github.com/sellarisstudio/scraperis/releases" target="_blank" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-900 rounded-xl hover:bg-accent-light hover:text-accent-hover transition" onclick="closeSidebar()">
+        <i data-lucide="external-link" class="text-accent"></i> Releases
+      </a>
+    </div>
+
+    <div class="mt-auto pt-6 border-t border-slate-100 flex flex-col gap-3">
+      <a href="https://github.com/sellarisstudio/scraperis/" target="_blank" class="btn w-full px-5 py-3 text-sm font-bold bg-slate-900 text-white rounded-full transition hover:bg-slate-800 flex items-center justify-center">
+        <i data-lucide="star"></i>
+        <span>Star on GitHub</span>
+      </a>
+      <a href="#install" class="btn w-full px-5 py-3 text-sm font-bold bg-accent text-white rounded-full transition hover:bg-accent-hover flex items-center justify-center" onclick="closeSidebar()">
+        <i data-lucide="download"></i>
+        <span>Download</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- HERO SECTION -->
+  <section class="pt-44 pb-20 text-center relative overflow-hidden">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="max-w-4xl mx-auto mb-16">
+        <!-- Badge -->
+        <a href="https://github.com/sellarisstudio/scraperis/releases" target="_blank" class="inline-flex items-center gap-2 px-4 py-1.5 bg-accent-light border border-accent/20 rounded-full text-xs font-semibold text-accent-hover hover:border-accent hover:shadow-sm hover:shadow-accent/5 transition duration-300 mb-8">
+          <span class="w-2 h-2 bg-accent rounded-full animate-ping"></span>
+          <span>v1.0.0 Windows Installer Released</span>
+          <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+        </a>
+        
+        <!-- Headline -->
+        <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight text-slate-900 mb-6 font-display leading-[1.1]">
+          Automated Business Lead Extractor for <span class="bg-gradient-to-r from-accent to-cyan-500 bg-clip-text text-transparent">Google Maps & Search</span>
+        </h1>
+        
+        <!-- Description -->
+        <p class="text-lg md:text-xl text-slate-600 font-normal max-w-2xl mx-auto mb-10 leading-relaxed">
+          A powerful, open-source desktop dashboard designed to scrape, aggregate, and export targeted B2B contact lists and marketing directories seamlessly.
+        </p>
+
+        <!-- GitHub Statistics row -->
+        <div class="flex items-center justify-center gap-8 mb-10 max-w-md mx-auto">
+          <div class="flex flex-col items-center">
+            <span class="text-3xl font-extrabold text-slate-900 font-display" id="github-stars">-</span>
+            <span class="text-xs text-slate-400 font-semibold tracking-wider uppercase mt-1 flex items-center gap-1">
+              <i data-lucide="star" class="w-3.5 h-3.5 text-accent"></i> Stars
+            </span>
+          </div>
+          <div class="w-[1px] h-10 bg-slate-200"></div>
+          <div class="flex flex-col items-center">
+            <span class="text-3xl font-extrabold text-slate-900 font-display" id="github-forks">-</span>
+            <span class="text-xs text-slate-400 font-semibold tracking-wider uppercase mt-1 flex items-center gap-1">
+              <i data-lucide="git-fork" class="w-3.5 h-3.5 text-accent"></i> Forks
+            </span>
+          </div>
+          <div class="w-[1px] h-10 bg-slate-200"></div>
+          <div class="flex flex-col items-center">
+            <span class="text-3xl font-extrabold text-slate-900 font-display" id="github-downloads">-</span>
+            <span class="text-xs text-slate-400 font-semibold tracking-wider uppercase mt-1 flex items-center gap-1">
+              <i data-lucide="download" class="w-3.5 h-3.5 text-accent"></i> Downloads
+            </span>
+          </div>
+        </div>
+        
+        <!-- CTAs -->
+        <div class="flex items-center justify-center gap-4 flex-wrap">
+          <a href="#install" class="btn px-6 py-3.5 text-base font-bold bg-accent hover:bg-accent-hover text-white rounded-full transition hover:-translate-y-0.5 shadow-lg shadow-accent/25 flex items-center">
+            <i data-lucide="download"></i>
+            <span>Download Installer (.exe)</span>
+          </a>
+          <a href="#demo" class="btn px-6 py-3.5 text-base font-bold bg-white text-slate-800 border border-slate-200 hover:border-accent hover:bg-accent-light hover:text-accent-hover rounded-full transition hover:-translate-y-0.5 flex items-center">
+            <i data-lucide="play"></i>
+            <span>Watch Demo</span>
+          </a>
+          <a href="https://github.com/sellarisstudio/scraperis/" target="_blank" class="btn px-6 py-3.5 text-base font-bold bg-slate-900 hover:bg-slate-800 text-white rounded-full transition hover:-translate-y-0.5 flex items-center">
+            <i data-lucide="star"></i>
+            <span>Star on GitHub</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Video Container Mockup -->
+      <div class="relative max-w-4xl mx-auto bg-white rounded-2xl border border-slate-200 shadow-2xl shadow-slate-900/5 overflow-hidden transition duration-300 hover:border-accent/30 hover:shadow-accent/5">
+        <div class="h-10 bg-slate-50 border-b border-slate-200 px-4 flex items-center relative">
+          <div class="flex gap-1.5">
+            <span class="w-3 h-3 rounded-full bg-[#ff5f56]"></span>
+            <span class="w-3 h-3 rounded-full bg-[#ffbd2e]"></span>
+            <span class="w-3 h-3 rounded-full bg-[#27c93f]"></span>
+          </div>
+          <span class="absolute left-1/2 -translate-x-1/2 text-xs text-slate-500 font-semibold">Scraperis Application Demo</span>
+        </div>
+        <div class="aspect-video bg-slate-950">
+          <iframe 
+            src="https://www.youtube.com/embed/wzbvd3leqPA?si=xsPqHQoRC0I_VM5G" 
+            title="Scraperis Demo Video" 
+            class="w-full h-full border-0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+            allowfullscreen>
+          </iframe>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES SECTION -->
+  <section id="features" class="py-24 border-b border-slate-100 bg-white">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center max-w-2xl mx-auto mb-16">
+        <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 mb-4 font-display">
+          Built with Powerful Lead Scraping Features
+        </h2>
+        <p class="text-slate-600">
+          Scraperis combines cutting-edge headless scraping technology with a user-friendly browser control interface, making lead collection effortless.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Feature 1 -->
+        <div class="bg-white border border-slate-200/80 rounded-2xl p-8 hover:-translate-y-1 hover:border-accent hover:shadow-xl hover:shadow-accent/5 transition duration-300 flex flex-col">
+          <div class="inline-flex items-center justify-center w-12 h-12 bg-accent-light border border-accent/20 rounded-xl text-accent mb-6">
+            <i data-lucide="map-pin" class="w-6 h-6"></i>
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-3 font-display">Google Maps Scraper</h3>
+          <p class="text-sm text-slate-600 leading-relaxed">
+            Extract extensive business lists from maps including name, category, rating, total review count, physical address, phone numbers, and official websites.
+          </p>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="bg-white border border-slate-200/80 rounded-2xl p-8 hover:-translate-y-1 hover:border-accent hover:shadow-xl hover:shadow-accent/5 transition duration-300 flex flex-col">
+          <div class="inline-flex items-center justify-center w-12 h-12 bg-cyan-50 border border-cyan-200/50 rounded-xl text-cyan-500 mb-6">
+            <i data-lucide="search" class="w-6 h-6"></i>
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-3 font-display">Google Search Scraper</h3>
+          <p class="text-sm text-slate-600 leading-relaxed">
+            Target social media networks (Instagram, Facebook, LinkedIn, TikTok) with customized category tags and contact prefixes (e.g. WhatsApp, WA.me) to gather direct contact info.
+          </p>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="bg-white border border-slate-200/80 rounded-2xl p-8 hover:-translate-y-1 hover:border-accent hover:shadow-xl hover:shadow-accent/5 transition duration-300 flex flex-col">
+          <div class="inline-flex items-center justify-center w-12 h-12 bg-teal-50 border border-teal-200/50 rounded-xl text-teal-500 mb-6">
+            <i data-lucide="list-ordered" class="w-6 h-6"></i>
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-3 font-display">Sequence Scraping</h3>
+          <p class="text-sm text-slate-600 leading-relaxed">
+            Input multiple search keywords and geographical locations simultaneously. The app runs systematically to resolve and scrape every combination sequence.
+          </p>
+        </div>
+
+        <!-- Feature 4 -->
+        <div class="bg-white border border-slate-200/80 rounded-2xl p-8 hover:-translate-y-1 hover:border-accent hover:shadow-xl hover:shadow-accent/5 transition duration-300 flex flex-col">
+          <div class="inline-flex items-center justify-center w-12 h-12 bg-accent-light border border-accent/20 rounded-xl text-accent mb-6">
+            <i data-lucide="shopping-basket" class="w-6 h-6"></i>
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-3 font-display">Persistent Leads Basket</h3>
+          <p class="text-sm text-slate-600 leading-relaxed">
+            Accumulate collected records across multiple scraper executions. A local storage-based basket automatically filters duplicates, keeping your data clean.
+          </p>
+        </div>
+
+        <!-- Feature 5 -->
+        <div class="bg-white border border-slate-200/80 rounded-2xl p-8 hover:-translate-y-1 hover:border-accent hover:shadow-xl hover:shadow-accent/5 transition duration-300 flex flex-col">
+          <div class="inline-flex items-center justify-center w-12 h-12 bg-cyan-50 border border-cyan-200/50 rounded-xl text-cyan-500 mb-6">
+            <i data-lucide="file-spreadsheet" class="w-6 h-6"></i>
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-3 font-display">Custom CSV & Excel Export</h3>
+          <p class="text-sm text-slate-600 leading-relaxed">
+            Select which data columns you need, configure file properties, and export seamlessly from active run outputs or your consolidated Leads Basket.
+          </p>
+        </div>
+
+        <!-- Feature 6 -->
+        <div class="bg-white border border-slate-200/80 rounded-2xl p-8 hover:-translate-y-1 hover:border-accent hover:shadow-xl hover:shadow-accent/5 transition duration-300 flex flex-col">
+          <div class="inline-flex items-center justify-center w-12 h-12 bg-teal-50 border border-teal-200/50 rounded-xl text-teal-500 mb-6">
+            <i data-lucide="terminal" class="w-6 h-6"></i>
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-3 font-display">Developer-Friendly SSE Logs</h3>
+          <p class="text-sm text-slate-600 leading-relaxed">
+            Engineered with Node.js, Express, and Playwright. Offers real-time progress visuals and raw server logs delivered via Server-Sent Events (SSE).
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCREENSHOTS GALLERY -->
+  <section id="demo" class="py-24 border-b border-slate-100 bg-slate-50/50">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center max-w-2xl mx-auto mb-16">
+        <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 mb-4 font-display">
+          App Screenshots & Workspace
+        </h2>
+        <p class="text-slate-600">
+          Take a closer look at the dashboard UI, configurations, results panel, and file output pipelines.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Item 1 -->
+        <div class="relative aspect-[16/10] rounded-2xl border border-slate-200 overflow-hidden cursor-pointer bg-slate-900 group hover:scale-[1.02] hover:border-accent hover:shadow-xl hover:shadow-slate-900/5 transition duration-300" onclick="openLightbox(0)">
+          <img src="src/public/images/scraperis/demo-1.png" alt="Google Maps Configuration Panel" class="w-full h-full object-cover transition duration-300 group-hover:opacity-75">
+          <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition duration-300 flex flex-col justify-end p-5 text-left">
+            <span class="text-sm font-bold text-white flex items-center gap-2">
+              <i data-lucide="monitor" class="w-4 h-4 text-accent"></i> Google Maps Configuration Panel
+            </span>
+          </div>
+          <span class="absolute top-4 right-4 w-9 h-9 rounded-full bg-accent text-white flex items-center justify-center opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100 transition duration-300 shadow-md shadow-accent/25">
+            <i data-lucide="zoom-in" class="w-4 h-4"></i>
+          </span>
+        </div>
+
+        <!-- Item 2 -->
+        <div class="relative aspect-[16/10] rounded-2xl border border-slate-200 overflow-hidden cursor-pointer bg-slate-900 group hover:scale-[1.02] hover:border-accent hover:shadow-xl hover:shadow-slate-900/5 transition duration-300" onclick="openLightbox(1)">
+          <img src="src/public/images/scraperis/demo-2.png" alt="Social Lead Targets Config" class="w-full h-full object-cover transition duration-300 group-hover:opacity-75">
+          <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition duration-300 flex flex-col justify-end p-5 text-left">
+            <span class="text-sm font-bold text-white flex items-center gap-2">
+              <i data-lucide="globe" class="w-4 h-4 text-accent"></i> Social Lead Targets Config
+            </span>
+          </div>
+          <span class="absolute top-4 right-4 w-9 h-9 rounded-full bg-accent text-white flex items-center justify-center opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100 transition duration-300 shadow-md shadow-accent/25">
+            <i data-lucide="zoom-in" class="w-4 h-4"></i>
+          </span>
+        </div>
+
+        <!-- Item 3 -->
+        <div class="relative aspect-[16/10] rounded-2xl border border-slate-200 overflow-hidden cursor-pointer bg-slate-900 group hover:scale-[1.02] hover:border-accent hover:shadow-xl hover:shadow-slate-900/5 transition duration-300" onclick="openLightbox(2)">
+          <img src="src/public/images/scraperis/demo-3.png" alt="Real-Time Scraper Console & Progress" class="w-full h-full object-cover transition duration-300 group-hover:opacity-75">
+          <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition duration-300 flex flex-col justify-end p-5 text-left">
+            <span class="text-sm font-bold text-white flex items-center gap-2">
+              <i data-lucide="terminal" class="w-4 h-4 text-accent"></i> Real-Time Scraper Console & Progress
+            </span>
+          </div>
+          <span class="absolute top-4 right-4 w-9 h-9 rounded-full bg-accent text-white flex items-center justify-center opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100 transition duration-300 shadow-md shadow-accent/25">
+            <i data-lucide="zoom-in" class="w-4 h-4"></i>
+          </span>
+        </div>
+
+        <!-- Item 4 -->
+        <div class="relative aspect-[16/10] rounded-2xl border border-slate-200 overflow-hidden cursor-pointer bg-slate-900 group hover:scale-[1.02] hover:border-accent hover:shadow-xl hover:shadow-slate-900/5 transition duration-300" onclick="openLightbox(3)">
+          <img src="src/public/images/scraperis/demo-4.png" alt="Data Table & Quick Operations" class="w-full h-full object-cover transition duration-300 group-hover:opacity-75">
+          <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition duration-300 flex flex-col justify-end p-5 text-left">
+            <span class="text-sm font-bold text-white flex items-center gap-2">
+              <i data-lucide="table" class="w-4 h-4 text-accent"></i> Data Table & Quick Operations
+            </span>
+          </div>
+          <span class="absolute top-4 right-4 w-9 h-9 rounded-full bg-accent text-white flex items-center justify-center opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100 transition duration-300 shadow-md shadow-accent/25">
+            <i data-lucide="zoom-in" class="w-4 h-4"></i>
+          </span>
+        </div>
+
+        <!-- Item 5 -->
+        <div class="relative aspect-[16/10] rounded-2xl border border-slate-200 overflow-hidden cursor-pointer bg-slate-900 group hover:scale-[1.02] hover:border-accent hover:shadow-xl hover:shadow-slate-900/5 transition duration-300" onclick="openLightbox(4)">
+          <img src="src/public/images/scraperis/demo-5.png" alt="Leads Basket Collection Workspace" class="w-full h-full object-cover transition duration-300 group-hover:opacity-75">
+          <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition duration-300 flex flex-col justify-end p-5 text-left">
+            <span class="text-sm font-bold text-white flex items-center gap-2">
+              <i data-lucide="shopping-bag" class="w-4 h-4 text-accent"></i> Leads Basket Collection Workspace
+            </span>
+          </div>
+          <span class="absolute top-4 right-4 w-9 h-9 rounded-full bg-accent text-white flex items-center justify-center opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100 transition duration-300 shadow-md shadow-accent/25">
+            <i data-lucide="zoom-in" class="w-4 h-4"></i>
+          </span>
+        </div>
+
+        <!-- Item 6 -->
+        <div class="relative aspect-[16/10] rounded-2xl border border-slate-200 overflow-hidden cursor-pointer bg-slate-900 group hover:scale-[1.02] hover:border-accent hover:shadow-xl hover:shadow-slate-900/5 transition duration-300" onclick="openLightbox(5)">
+          <img src="src/public/images/scraperis/demo-6.png" alt="Custom Column & Export Settings" class="w-full h-full object-cover transition duration-300 group-hover:opacity-75">
+          <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition duration-300 flex flex-col justify-end p-5 text-left">
+            <span class="text-sm font-bold text-white flex items-center gap-2">
+              <i data-lucide="download-cloud" class="w-4 h-4 text-accent"></i> Custom Column & Export Settings
+            </span>
+          </div>
+          <span class="absolute top-4 right-4 w-9 h-9 rounded-full bg-accent text-white flex items-center justify-center opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100 transition duration-300 shadow-md shadow-accent/25">
+            <i data-lucide="zoom-in" class="w-4 h-4"></i>
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LIGHTBOX MODAL -->
+  <div id="lightbox" class="fixed inset-0 bg-slate-950/95 z-[999] opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center">
+    <button class="absolute top-6 right-6 text-white/60 hover:text-white transition" onclick="closeLightbox()" aria-label="Close Lightbox">
+      <i data-lucide="x" class="w-8 h-8"></i>
+    </button>
+    <div class="absolute left-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/70 hover:bg-white/15 hover:text-white transition cursor-pointer select-none" onclick="prevImage()">
+      <i data-lucide="chevron-left" class="w-6 h-6"></i>
+    </div>
+    <div class="max-w-[90%] max-h-[80%] flex flex-col items-center scale-95 transition-transform duration-300" id="lightbox-content">
+      <img id="lightbox-img" src="" alt="Zoomed Screenshot" class="max-w-full max-h-[75vh] rounded-lg border border-white/10 shadow-2xl">
+      <div id="lightbox-caption" class="mt-4 text-white text-base font-semibold text-center">Caption Text</div>
+    </div>
+    <div class="absolute right-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/70 hover:bg-white/15 hover:text-white transition cursor-pointer select-none" onclick="nextImage()">
+      <i data-lucide="chevron-right" class="w-6 h-6"></i>
+    </div>
+  </div>
+
+  <!-- INSTALLATION SECTION -->
+  <section id="install" class="py-24 bg-white border-b border-slate-100">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center max-w-2xl mx-auto mb-16">
+        <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 mb-4 font-display">
+          Get Started with Scraperis
+        </h2>
+        <p class="text-slate-600">
+          Choose between downloading the ready-to-run Windows installer or launching the developer repository locally on your computer.
+        </p>
+      </div>
+
+      <!-- Setup Tabs Container -->
+      <div class="max-w-3xl mx-auto bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+        <div class="flex bg-slate-50 border-b border-slate-200">
+          <button class="flex-1 px-2 py-4 text-xs sm:text-sm font-bold text-slate-500 hover:text-accent-hover transition flex items-center justify-center gap-1 sm:gap-2 border-b-2 border-transparent active active:text-accent-hover active:border-accent active:bg-white" id="tab-user-btn" onclick="switchTab('user-tab')">
+            <i data-lucide="user"></i> End-User Installation
+          </button>
+          <button class="flex-1 px-2 py-4 text-xs sm:text-sm font-bold text-slate-500 hover:text-accent-hover transition flex items-center justify-center gap-1 sm:gap-2 border-b-2 border-transparent active:text-accent-hover active:border-accent active:bg-white" id="tab-dev-btn" onclick="switchTab('dev-tab')">
+            <i data-lucide="code-2"></i> Developer Setup
+          </button>
+        </div>
+
+        <div class="p-8">
+          <!-- End User Tab Content -->
+          <div id="user-tab" class="space-y-8">
+            <div class="flex gap-4">
+              <span class="flex items-center justify-center w-8 h-8 rounded-full bg-accent-light border border-accent/20 text-accent-hover text-sm font-bold flex-shrink-0">1</span>
+              <div>
+                <h4 class="text-base font-bold text-slate-900 mb-1">Download the Windows Installer</h4>
+                <p class="text-sm text-slate-600 mb-4">Get the latest ready-to-run installation bundle directly from our GitHub Releases page.</p>
+                <a href="https://github.com/sellarisstudio/scraperis/releases" target="_blank" class="btn inline-flex items-center gap-2 px-5 py-2.5 bg-accent hover:bg-accent-hover text-white rounded-full transition shadow-sm">
+                  <i data-lucide="download"></i> Download Latest Release (.exe)
+                </a>
+              </div>
+            </div>
+
+            <div class="flex gap-4">
+              <span class="flex items-center justify-center w-8 h-8 rounded-full bg-accent-light border border-accent/20 text-accent-hover text-sm font-bold flex-shrink-0">2</span>
+              <div>
+                <h4 class="text-base font-bold text-slate-900 mb-1">Run the setup executable</h4>
+                <p class="text-sm text-slate-600">Double-click the downloaded `.exe` installer. If Windows SmartScreen prompts a warning, click on <strong>More Info</strong> and click <strong>Run Anyway</strong> (This is normal since the installer is self-signed).</p>
+              </div>
+            </div>
+
+            <div class="flex gap-4">
+              <span class="flex items-center justify-center w-8 h-8 rounded-full bg-accent-light border border-accent/20 text-accent-hover text-sm font-bold flex-shrink-0">3</span>
+              <div>
+                <h4 class="text-base font-bold text-slate-900 mb-1">Launch and Start Extracting</h4>
+                <p class="text-sm text-slate-600">Open Scraperis from the desktop shortcut or Start Menu, paste your target categories/locations, and build your list immediately!</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Developer Setup Tab Content -->
+          <div id="dev-tab" class="space-y-8 hidden">
+            <div class="flex gap-4">
+              <span class="flex items-center justify-center w-8 h-8 rounded-full bg-accent-light border border-accent/20 text-accent-hover text-sm font-bold flex-shrink-0">1</span>
+              <div>
+                <h4 class="text-base font-bold text-slate-900 mb-1">Prerequisites</h4>
+                <p class="text-sm text-slate-600">Make sure you have <a href="https://nodejs.org/" target="_blank" class="text-accent hover:underline">Node.js</a> (v16 or higher) installed on your development workstation.</p>
+              </div>
+            </div>
+
+            <div class="flex gap-4">
+              <span class="flex items-center justify-center w-8 h-8 rounded-full bg-accent-light border border-accent/20 text-accent-hover text-sm font-bold flex-shrink-0">2</span>
+              <div>
+                <h4 class="text-base font-bold text-slate-900 mb-1">Clone and Install Dependencies</h4>
+                <p class="text-sm text-slate-600 mb-3">Execute these terminal instructions to download the source files and install required nodes:</p>
+                <div class="relative mt-2">
+                  <pre class="bg-slate-950 rounded-lg p-4 font-mono text-sm text-cyan-400 overflow-x-auto pr-16 w-full max-w-full block">git clone https://github.com/sellarisstudio/scraperis.git
+cd scraperis
+npm install</pre>
+                  <button class="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-md bg-white/5 border border-white/5 hover:bg-white/15 flex items-center justify-center text-slate-400 hover:text-white transition cursor-pointer" onclick="copyCode(this)" aria-label="Copy code">
+                    <i data-lucide="copy" class="w-4 h-4"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex gap-4">
+              <span class="flex items-center justify-center w-8 h-8 rounded-full bg-accent-light border border-accent/20 text-accent-hover text-sm font-bold flex-shrink-0">3</span>
+              <div>
+                <h4 class="text-base font-bold text-slate-900 mb-1">Install Playwright Browsers</h4>
+                <p class="text-sm text-slate-600 mb-3">Run the background installation sequence to download headless Chromium browsers managed by Playwright:</p>
+                <div class="relative mt-2">
+                  <pre class="bg-slate-950 rounded-lg p-4 font-mono text-sm text-cyan-400 overflow-x-auto pr-16 w-full max-w-full block">npm run install-browser</pre>
+                  <button class="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-md bg-white/5 border border-white/5 hover:bg-white/15 flex items-center justify-center text-slate-400 hover:text-white transition cursor-pointer" onclick="copyCode(this)" aria-label="Copy code">
+                    <i data-lucide="copy" class="w-4 h-4"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex gap-4">
+              <span class="flex items-center justify-center w-8 h-8 rounded-full bg-accent-light border border-accent/20 text-accent-hover text-sm font-bold flex-shrink-0">4</span>
+              <div>
+                <h4 class="text-base font-bold text-slate-900 mb-1">Start Local Server / Electron Environment</h4>
+                <p class="text-sm text-slate-600">To launch the dev server backend on <code>http://localhost:3000</code>:</p>
+                <div class="relative mt-2 mb-4">
+                  <pre class="bg-slate-950 rounded-lg p-4 font-mono text-sm text-cyan-400 overflow-x-auto pr-16 w-full max-w-full block">npm run dev</pre>
+                  <button class="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-md bg-white/5 border border-white/5 hover:bg-white/15 flex items-center justify-center text-slate-400 hover:text-white transition cursor-pointer" onclick="copyCode(this)" aria-label="Copy code">
+                    <i data-lucide="copy" class="w-4 h-4"></i>
+                  </button>
+                </div>
+                <p class="text-sm text-slate-600">To launch the desktop dashboard wrapper via Electron:</p>
+                <div class="relative mt-2">
+                  <pre class="bg-slate-950 rounded-lg p-4 font-mono text-sm text-cyan-400 overflow-x-auto pr-16 w-full max-w-full block">npm run electron:dev</pre>
+                  <button class="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-md bg-white/5 border border-white/5 hover:bg-white/15 flex items-center justify-center text-slate-400 hover:text-white transition cursor-pointer" onclick="copyCode(this)" aria-label="Copy code">
+                    <i data-lucide="copy" class="w-4 h-4"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="py-16 bg-slate-50 border-t border-slate-200/60 text-slate-500 text-sm">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+        <!-- Logo -->
+        <a href="#" class="flex items-center gap-2.5 text-slate-900 font-display font-bold text-lg no-underline">
+          <img src="src/public/images/logo-fullcolor.png" alt="Scraperis Logo" class="h-6 w-auto">
+          <span>Scraperis</span>
+        </a>
+        
+        <!-- Links -->
+        <div class="flex gap-6 flex-wrap justify-center">
+          <a href="#features" class="hover:text-accent-hover transition">Features</a>
+          <a href="#demo" class="hover:text-accent-hover transition">Demo Screenshots</a>
+          <a href="#install" class="hover:text-accent-hover transition">Install Guide</a>
+          <a href="https://github.com/sellarisstudio/scraperis/" target="_blank" class="hover:text-accent-hover transition">GitHub</a>
+        </div>
+
+        <!-- Social Icon -->
+        <div class="flex items-center gap-4">
+          <a href="https://github.com/sellarisstudio/scraperis/" target="_blank" class="text-slate-400 hover:text-slate-900 transition" aria-label="GitHub Repository">
+            <i data-lucide="github" class="w-5 h-5"></i>
+          </a>
+        </div>
+      </div>
+      
+      <div class="text-center mt-12 pt-8 border-t border-slate-200/50 text-xs text-slate-400">
+        <p>&copy; 2026 Sellaris Studio. Released under the MIT License.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- INTERACTIVE SCRIPTS -->
+  <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
+    // Scroll Sticky Navbar
+    window.addEventListener('scroll', () => {
+      const header = document.getElementById('header');
+      if (window.scrollY > 50) {
+        header.classList.add('bg-white/90');
+        header.classList.add('shadow-sm');
+        header.classList.remove('bg-white/75');
+      } else {
+        header.classList.remove('bg-white/90');
+        header.classList.remove('shadow-sm');
+        header.classList.add('bg-white/75');
+      }
+    });
+
+    // Mobile Sidebar Drawer
+    function toggleSidebar() {
+      const sidebar = document.getElementById('mobile-sidebar');
+      const overlay = document.getElementById('sidebar-overlay');
+      sidebar.classList.toggle('translate-x-0');
+      sidebar.classList.toggle('translate-x-full');
+      overlay.classList.toggle('opacity-100');
+      overlay.classList.toggle('pointer-events-auto');
+      overlay.classList.toggle('opacity-0');
+      overlay.classList.toggle('pointer-events-none');
+      if (sidebar.classList.contains('translate-x-0')) {
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.body.style.overflow = '';
+      }
+    }
+
+    function closeSidebar() {
+      const sidebar = document.getElementById('mobile-sidebar');
+      const overlay = document.getElementById('sidebar-overlay');
+      sidebar.classList.add('translate-x-full');
+      sidebar.classList.remove('translate-x-0');
+      overlay.classList.remove('opacity-100');
+      overlay.classList.remove('pointer-events-auto');
+      overlay.classList.add('opacity-0');
+      overlay.classList.add('pointer-events-none');
+      document.body.style.overflow = '';
+    }
+
+    // Tab System for Installation
+    function switchTab(tabId) {
+      const userTab = document.getElementById('user-tab');
+      const devTab = document.getElementById('dev-tab');
+      const userBtn = document.getElementById('tab-user-btn');
+      const devBtn = document.getElementById('tab-dev-btn');
+      
+      if (tabId === 'user-tab') {
+        userTab.classList.remove('hidden');
+        devTab.classList.add('hidden');
+        userBtn.classList.add('active', 'text-accent-hover', 'border-accent', 'bg-white');
+        devBtn.classList.remove('active', 'text-accent-hover', 'border-accent', 'bg-white');
+      } else {
+        devTab.classList.remove('hidden');
+        userTab.classList.add('hidden');
+        devBtn.classList.add('active', 'text-accent-hover', 'border-accent', 'bg-white');
+        userBtn.classList.remove('active', 'text-accent-hover', 'border-accent', 'bg-white');
+      }
+    }
+    // Initialize active tab styling
+    switchTab('user-tab');
+
+    // Code Copying Logic
+    function copyCode(button) {
+      const codeBlock = button.previousElementSibling;
+      const textToCopy = codeBlock.textContent;
+
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        // Change icon to check
+        button.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i>';
+        button.classList.add('copied');
+        lucide.createIcons();
+
+        // Revert icon after 2 seconds
+        setTimeout(() => {
+          button.innerHTML = '<i data-lucide="copy" class="w-4 h-4"></i>';
+          button.classList.remove('copied');
+          lucide.createIcons();
+        }, 2000);
+      }).catch(err => {
+        console.error('Failed to copy text: ', err);
+      });
+    }
+
+    // Screenshot Lightbox Modal Logic
+    const imagesData = [
+      {
+        src: 'src/public/images/scraperis/demo-1.png',
+        caption: 'Google Maps Configuration Panel: Paste target keywords and locations to scrape.'
+      },
+      {
+        src: 'src/public/images/scraperis/demo-2.png',
+        caption: 'Google Search Settings: configure target platforms and country contact prefixes.'
+      },
+      {
+        src: 'src/public/images/scraperis/demo-3.png',
+        caption: 'Real-time progress dashboard with Server-Sent Events console logging.'
+      },
+      {
+        src: 'src/public/images/scraperis/demo-4.png',
+        caption: 'Review lead profiles, coordinates, categories, and direct contact details.'
+      },
+      {
+        src: 'src/public/images/scraperis/demo-5.png',
+        caption: 'Persistent local storage-based Leads Basket with automated duplicate filtration.'
+      },
+      {
+        src: 'src/public/images/scraperis/demo-6.png',
+        caption: 'Flexible column selectors and direct compilation to Microsoft Excel and CSV files.'
+      }
+    ];
+
+    let currentImgIdx = 0;
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+    const lightboxCaption = document.getElementById('lightbox-caption');
+    const lightboxContent = document.getElementById('lightbox-content');
+
+    function openLightbox(index) {
+      currentImgIdx = index;
+      updateLightboxContent();
+      lightbox.classList.remove('opacity-0', 'pointer-events-none');
+      lightbox.classList.add('opacity-100', 'pointer-events-auto');
+      lightboxContent.classList.remove('scale-95');
+      lightboxContent.classList.add('scale-100');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox() {
+      lightbox.classList.add('opacity-0', 'pointer-events-none');
+      lightbox.classList.remove('opacity-100', 'pointer-events-auto');
+      lightboxContent.classList.add('scale-95');
+      lightboxContent.classList.remove('scale-100');
+      document.body.style.overflow = '';
+    }
+
+    function prevImage() {
+      currentImgIdx = (currentImgIdx - 1 + imagesData.length) % imagesData.length;
+      updateLightboxContent();
+    }
+
+    function nextImage() {
+      currentImgIdx = (currentImgIdx + 1) % imagesData.length;
+      updateLightboxContent();
+    }
+
+    function updateLightboxContent() {
+      const item = imagesData[currentImgIdx];
+      lightboxImg.src = item.src;
+      lightboxCaption.textContent = item.caption;
+    }
+
+    // Close lightbox on clicking backdrop
+    lightbox.addEventListener('click', (e) => {
+      if (e.target === lightbox) {
+        closeLightbox();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (lightbox.classList.contains('pointer-events-none')) return;
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowLeft') prevImage();
+      if (e.key === 'ArrowRight') nextImage();
+    });
+
+    // Fetch GitHub statistics on load
+    async function fetchGitHubStats() {
+      const repo = 'sellarisstudio/scraperis';
+      try {
+        const repoResponse = await fetch(`https://api.github.com/repos/${repo}`);
+        if (repoResponse.ok) {
+          const repoData = await repoResponse.json();
+          document.getElementById('github-stars').textContent = repoData.stargazers_count;
+          document.getElementById('github-forks').textContent = repoData.forks_count;
+          
+          // Dynamically update Star button count
+          const starBtnSpans = document.querySelectorAll('a[href*="github.com/sellarisstudio/scraperis/"] span');
+          starBtnSpans.forEach(span => {
+            if (span.textContent.toLowerCase().includes('star')) {
+              span.textContent = `Star (${repoData.stargazers_count})`;
+            }
+          });
+        }
+        
+        const releasesResponse = await fetch(`https://api.github.com/repos/${repo}/releases`);
+        if (releasesResponse.ok) {
+          const releasesData = await releasesResponse.json();
+          let totalDownloads = 0;
+          releasesData.forEach(release => {
+            if (release.assets) {
+              release.assets.forEach(asset => {
+                totalDownloads += (asset.download_count || 0);
+              });
+            }
+          });
+          document.getElementById('github-downloads').textContent = totalDownloads > 0 ? totalDownloads : '0';
+        }
+      } catch (error) {
+        console.error('Error fetching GitHub stats:', error);
+        // Fallbacks
+        document.getElementById('github-stars').textContent = '2';
+        document.getElementById('github-forks').textContent = '0';
+        document.getElementById('github-downloads').textContent = '35';
+      }
+    }
+    window.addEventListener('DOMContentLoaded', fetchGitHubStats);
+  </script>
+</body>
+</html>
