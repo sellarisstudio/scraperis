@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="public/images/logo-fullcolor.png" alt="Scraperis Logo" width="350" style="margin-bottom: 20px;" />
+  <img src="src/public/images/logo-fullcolor.png" alt="Scraperis Logo" width="350" style="margin-bottom: 20px;" />
 
 # Scraperis 🚀
 
