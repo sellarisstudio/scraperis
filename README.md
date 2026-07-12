@@ -50,6 +50,11 @@ Features a modern glassmorphic web dashboard with real-time scraping progress, l
 ## 📸 Demo & Screenshots
 
 <div align="center">
+  <p><strong>🎬 Video Demo in Action</strong></p>
+  <a href="https://www.youtube.com/watch?v=wzbvd3leqPA" target="_blank">
+    <img src="https://img.youtube.com/vi/wzbvd3leqPA/maxresdefault.jpg" alt="Scraperis Video Demo" width="600" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-bottom: 24px;" />
+  </a>
+
   <p><strong>Scraperis Interface & Features in Action</strong></p>
   
   <table>
