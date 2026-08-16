@@ -548,6 +548,8 @@
     const mode = searchModeInput.value;
     const autoSaveBasket =
       document.getElementById("chk-auto-save-basket")?.checked || false;
+    const skipNoPhoneVal =
+      document.getElementById("chk-skip-no-phone")?.checked ?? true;
     const headlessVal = configHeadlessInput ? configHeadlessInput.checked : true;
     const captchaTimeoutVal = configCaptchaTimeoutInput ? parseInt(configCaptchaTimeoutInput.value) || 60 : 60;
     const usePersistentVal = configPersistentProfileInput ? configPersistentProfileInput.checked : true;
@@ -663,6 +665,7 @@
             headlessVal,
             captchaTimeoutVal,
             usePersistentVal,
+            skipNoPhoneVal,
           );
 
           if (cancelRequested) {
@@ -745,6 +748,7 @@
     headless,
     captchaTimeout,
     usePersistent,
+    skipNoPhone = true,
   ) {
     return new Promise(async (resolve) => {
       try {
@@ -763,6 +767,7 @@
             headless,
             captchaTimeout,
             usePersistent,
+            skipNoPhone,
           }),
         });
 
@@ -906,25 +911,69 @@
     progressPercent.textContent = p + "%";
   }
 
+  function buildBasketItem(lead, savedAt) {
+    const rawPhone = lead.phone ? String(lead.phone).trim() : "";
+    const uniqueKey = rawPhone || `NO_PHONE_${(lead.name || lead.title || 'lead').replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+
+    let desc = lead.description || "";
+    const leadName = lead.name || lead.title || "";
+    if (!desc && leadName) {
+      const catText = (lead.category || lead.platform) ? `usaha di bidang ${lead.category || lead.platform}` : 'bisnis';
+      const locText = (lead.address && lead.address !== "—") ? `beralamat di ${lead.address}` : (lead.daerah ? `berlokasi di daerah ${lead.daerah}` : '');
+      desc = `${leadName} merupakan ${catText}${locText ? ` yang ${locText}` : ''}.`;
+      if (rawPhone && !rawPhone.startsWith("NO_PHONE_")) {
+        desc += ` Untuk informasi lebih lanjut atau pemesanan dapat menghubungi nomor telepon ${rawPhone}.`;
+      }
+      if (lead.socialMedia) {
+        desc += ` Akun media sosial resmi: ${lead.socialMedia}.`;
+      } else if (lead.website) {
+        desc += ` Website resmi: ${lead.website}.`;
+      }
+      desc = desc.trim();
+    }
+
+    return {
+      name: lead.name || lead.title || "—",
+      category: lead.category || lead.platform || "—",
+      daerah: lead.daerah || "",
+      rating: lead.rating != null ? lead.rating : null,
+      reviewCount: lead.reviewCount != null ? lead.reviewCount : null,
+      phone: uniqueKey,
+      email: lead.email || "",
+      address: lead.address || lead.snippet || "—",
+      website: lead.website || "",
+      lat: lead.lat != null ? lead.lat : null,
+      lng: lead.lng != null ? lead.lng : null,
+      description: desc,
+      priceRange: lead.priceRange || "",
+      status: lead.status || "",
+      claimed: lead.claimed || "",
+      socialMedia: lead.socialMedia || "",
+      menuUrl: lead.menuUrl || "",
+      reservationUrl: lead.reservationUrl || "",
+      thumbnail: lead.thumbnail || "",
+      plusCode: lead.plusCode || "",
+      hours: lead.hours || "",
+      source: lead.mapsUrl ? "Maps" : "Search",
+      url: lead.mapsUrl || lead.website || lead.url || "",
+      mapsUrl: lead.mapsUrl || "",
+      savedAt: savedAt || getJakartaDateTime(),
+    };
+  }
+
   function saveSubJobLeadsToBasket(subResults) {
     if (!subResults || subResults.length === 0) return;
 
     const batchItems = [];
     const now = getJakartaDateTime();
     subResults.forEach((lead) => {
-      if (!lead.phone) return;
+      const basketItem = buildBasketItem(lead, now);
 
-      const basketItem = {
-        name: lead.name || lead.title || "—",
-        category: lead.category || lead.platform || "—",
-        phone: lead.phone,
-        address: lead.address || lead.snippet || "—",
-        source: lead.mapsUrl ? "Maps" : "Search",
-        url: lead.mapsUrl || lead.website || lead.url || "",
-        savedAt: now,
-      };
-
-      const exists = savedLeads.some((item) => item.phone === basketItem.phone);
+      const exists = savedLeads.some((item) => 
+        (basketItem.phone.startsWith("NO_PHONE_") 
+          ? (item.name === basketItem.name && item.address === basketItem.address)
+          : item.phone === basketItem.phone)
+      );
       if (!exists) {
         batchItems.push(basketItem);
       }
@@ -1181,9 +1230,23 @@
           <td><button type="button" class="a-btn a-btn-accent save-lead-btn" style="padding: 2px 8px; font-size: var(--font-size-xs);"><i data-lucide="plus" class="icon-sm"></i> Basket</button></td>
         `;
       } else {
+        const badges = [];
+        if (r.daerah) badges.push(`<span style="display:inline-block; font-size:10px; padding:1px 6px; border-radius:4px; background:var(--color-accent-light, #e0e7ff); color:var(--color-accent, #4f46e5); font-weight:600;">📍 ${escapeHtml(r.daerah)}</span>`);
+        if (r.priceRange) badges.push(`<span style="display:inline-block; font-size:10px; padding:1px 6px; border-radius:4px; background:rgba(34, 197, 94, 0.15); color:#16a34a; font-weight:600;">💰 ${escapeHtml(r.priceRange)}</span>`);
+        if (r.status) badges.push(`<span style="display:inline-block; font-size:10px; padding:1px 6px; border-radius:4px; background:rgba(234, 179, 8, 0.15); color:#ca8a04; font-weight:600;">🕒 ${escapeHtml(r.status)}</span>`);
+        if (r.claimed && r.claimed.includes('Claimed')) badges.push(`<span style="display:inline-block; font-size:10px; padding:1px 6px; border-radius:4px; background:rgba(59, 130, 246, 0.15); color:#2563eb; font-weight:600;">✓ Verified</span>`);
+        if (r.socialMedia) badges.push(`<span style="display:inline-block; font-size:10px; padding:1px 6px; border-radius:4px; background:rgba(236, 72, 153, 0.15); color:#db2777; font-weight:600;">🔗 Social</span>`);
+
+        const badgeHtml = badges.length > 0 ? `<div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:3px;">${badges.join('')}</div>` : '';
+        const descHtml = r.description ? `<div style="font-size:11px; color:var(--color-text-secondary); margin-top:3px; max-width:280px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${escapeAttr(r.description)}">💬 ${escapeHtml(r.description)}</div>` : '';
+
         tr.innerHTML = `
           <td>${r.index || ""}</td>
-          <td class="cell-name" title="${escapeAttr(r.name)}">${escapeHtml(r.name)}</td>
+          <td class="cell-name" title="${escapeAttr(r.name)}">
+            <div style="font-weight:600;">${escapeHtml(r.name)}</div>
+            ${badgeHtml}
+            ${descHtml}
+          </td>
           <td><span class="cell-category" title="${escapeAttr(r.category)}">${escapeHtml(r.category || "—")}</span></td>
           <td class="cell-rating">${r.rating ? `<span class="star">★</span> ${r.rating}` : "—"}</td>
           <td class="cell-reviews">${r.reviewCount != null ? formatNumber(r.reviewCount) : "—"}</td>
@@ -1469,22 +1532,18 @@
   // Basket Operations & UI
   // ========================
   function saveLeadToBasket(lead) {
-    if (!lead || !lead.phone) return;
+    if (!lead) return;
 
-    const basketItem = {
-      name: lead.name || lead.title || "—",
-      category: lead.category || lead.platform || "—",
-      phone: lead.phone,
-      address: lead.address || lead.snippet || "—",
-      source: lead.mapsUrl ? "Maps" : "Search",
-      url: lead.mapsUrl || lead.website || lead.url || "",
-      savedAt: getJakartaDateTime(),
-    };
+    const basketItem = buildBasketItem(lead);
 
-    const exists = savedLeads.some((item) => item.phone === basketItem.phone);
+    const exists = savedLeads.some((item) => 
+      (basketItem.phone.startsWith("NO_PHONE_") 
+        ? (item.name === basketItem.name && item.address === basketItem.address)
+        : item.phone === basketItem.phone)
+    );
     if (exists) {
       showToast(
-        `Lead dengan nomor ${basketItem.phone} sudah ada di basket!`,
+        `Lead ${basketItem.name} sudah ada di basket!`,
         "info",
       );
       return;
@@ -1508,19 +1567,13 @@
     const batchItems = [];
     const now = getJakartaDateTime();
     results.forEach((lead) => {
-      if (!lead.phone) return;
+      const basketItem = buildBasketItem(lead, now);
 
-      const basketItem = {
-        name: lead.name || lead.title || "—",
-        category: lead.category || lead.platform || "—",
-        phone: lead.phone,
-        address: lead.address || lead.snippet || "—",
-        source: lead.mapsUrl ? "Maps" : "Search",
-        url: lead.mapsUrl || lead.website || lead.url || "",
-        savedAt: now,
-      };
-
-      const exists = savedLeads.some((item) => item.phone === basketItem.phone);
+      const exists = savedLeads.some((item) => 
+        (basketItem.phone.startsWith("NO_PHONE_") 
+          ? (item.name === basketItem.name && item.address === basketItem.address)
+          : item.phone === basketItem.phone)
+      );
       if (!exists) {
         batchItems.push(basketItem);
       }
@@ -1749,11 +1802,25 @@
       paginatedGroupLeads.forEach((item, index) => {
         const tr = document.createElement("tr");
         const itemNumber = groupStart + index + 1;
+        const badges = [];
+        if (item.daerah) badges.push(`<span style="display:inline-block; font-size:10px; padding:1px 6px; border-radius:4px; background:var(--color-accent-light, #e0e7ff); color:var(--color-accent, #4f46e5); font-weight:600;">📍 ${escapeHtml(item.daerah)}</span>`);
+        if (item.priceRange) badges.push(`<span style="display:inline-block; font-size:10px; padding:1px 6px; border-radius:4px; background:rgba(34, 197, 94, 0.15); color:#16a34a; font-weight:600;">💰 ${escapeHtml(item.priceRange)}</span>`);
+        if (item.status) badges.push(`<span style="display:inline-block; font-size:10px; padding:1px 6px; border-radius:4px; background:rgba(234, 179, 8, 0.15); color:#ca8a04; font-weight:600;">🕒 ${escapeHtml(item.status)}</span>`);
+        if (item.claimed && item.claimed.includes('Claimed')) badges.push(`<span style="display:inline-block; font-size:10px; padding:1px 6px; border-radius:4px; background:rgba(59, 130, 246, 0.15); color:#2563eb; font-weight:600;">✓ Verified</span>`);
+        if (item.socialMedia) badges.push(`<span style="display:inline-block; font-size:10px; padding:1px 6px; border-radius:4px; background:rgba(236, 72, 153, 0.15); color:#db2777; font-weight:600;">🔗 Social</span>`);
+
+        const badgeHtml = badges.length > 0 ? `<div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:3px;">${badges.join('')}</div>` : '';
+        const descHtml = item.description ? `<div style="font-size:11px; color:var(--color-text-secondary); margin-top:3px; max-width:280px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${escapeAttr(item.description)}">💬 ${escapeHtml(item.description)}</div>` : '';
+
         tr.innerHTML = `
           <td>${itemNumber}</td>
-          <td class="cell-name" title="${escapeAttr(item.name)}">${escapeHtml(item.name)}</td>
+          <td class="cell-name" title="${escapeAttr(item.name)}">
+            <div style="font-weight:600;">${escapeHtml(item.name)}</div>
+            ${badgeHtml}
+            ${descHtml}
+          </td>
           <td><span class="cell-category">${escapeHtml(item.category)}</span></td>
-          <td class="cell-phone">${escapeHtml(item.phone)}</td>
+          <td class="cell-phone">${item.phone && !item.phone.startsWith("NO_PHONE_") ? escapeHtml(item.phone) : "—"}</td>
           <td class="cell-address" title="${escapeAttr(item.address)}">${escapeHtml(item.address)}</td>
           <td><span class="cell-category" style="background: var(--color-accent-light); color: var(--color-accent); font-weight:600;">${escapeHtml(item.source)}</span></td>
           <td class="cell-link">${item.url ? `<a href="${escapeAttr(item.url)}" target="_blank" rel="noopener">Open ↗</a>` : "—"}</td>
@@ -1853,11 +1920,16 @@
     try {
       const basketCols = getCheckedColumns("basket");
 
+      const sanitizedLeads = leadsToExport.map((item) => ({
+        ...item,
+        phone: item.phone && !item.phone.startsWith("NO_PHONE_") ? item.phone : "",
+      }));
+
       const response = await fetch(`/api/export/basket/${format}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          leads: leadsToExport,
+          leads: sanitizedLeads,
           basketColumns: basketCols,
         }),
       });

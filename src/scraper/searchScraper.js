@@ -68,6 +68,17 @@ function formatPhoneID(raw) {
 }
 
 /**
+ * Extract email addresses from snippet/title text
+ */
+function extractEmails(text) {
+  if (!text) return '';
+  const emailRegex = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/gi;
+  const matches = text.match(emailRegex) || [];
+  const valid = matches.filter((e) => !e.endsWith('.png') && !e.endsWith('.jpg') && !e.endsWith('.webp'));
+  return valid.length > 0 ? [...new Set(valid)].join(', ') : '';
+}
+
+/**
  * Extract phone numbers from snippet/title text
  */
 function extractPhones(text) {
@@ -98,7 +109,7 @@ function extractPhones(text) {
 /**
  * Unified Search Scraping function supporting Google, DuckDuckGo, Bing, Yahoo, and SerpApi
  */
-async function scrapeSearch(jobId, platform, category, location, contactPrefix, maxResults = 100, searchTarget = 'google', serpApiKey = '', headless = true, captchaTimeout = 60, usePersistent = true) {
+async function scrapeSearch(jobId, platform, category, location, contactPrefix, maxResults = 100, searchTarget = 'google', serpApiKey = '', headless = true, captchaTimeout = 60, usePersistent = true, skipNoPhone = true) {
   const platformQuery = platform.includes('.') ? platform : `${platform}.com`;
   const searchString = `site:${platformQuery} "${category}" "${location}" "${contactPrefix}"`;
 
@@ -124,8 +135,34 @@ async function scrapeSearch(jobId, platform, category, location, contactPrefix, 
       for (const res of organic) {
         const combinedText = `${res.title || ''} ${res.snippet || ''}`;
         const phones = extractPhones(combinedText);
+        const email = extractEmails(combinedText);
 
-        if (phones.length === 0) continue;
+        if (phones.length === 0) {
+          if (skipNoPhone) continue;
+
+          const job = jobManager.getJob(jobId);
+          const isDuplicate = job.results.some(
+            (r) => r.url === res.link && r.title === res.title
+          );
+          if (!isDuplicate && resultsCount < maxResults) {
+            resultsCount++;
+            jobManager.addResult(jobId, {
+              index: resultsCount,
+              title: res.title || '',
+              url: res.link || '',
+              phone: '',
+              email,
+              snippet: res.snippet || '',
+              platform: platformQuery
+            });
+            jobManager.updateProgress(
+              jobId,
+              Math.min(45 + (resultsCount / maxResults) * 50, 95),
+              `✅ [${resultsCount}] Found: ${res.title}`
+            );
+          }
+          continue;
+        }
 
         for (const phone of phones) {
           if (resultsCount >= maxResults) break;
@@ -142,6 +179,7 @@ async function scrapeSearch(jobId, platform, category, location, contactPrefix, 
               title: res.title || '',
               url: res.link || '',
               phone,
+              email,
               snippet: res.snippet || '',
               platform: platformQuery
             });
@@ -322,8 +360,34 @@ async function scrapeSearch(jobId, platform, category, location, contactPrefix, 
 
         const combinedText = `${res.title} ${res.snippet}`;
         const phones = extractPhones(combinedText);
+        const email = extractEmails(combinedText);
 
         if (phones.length === 0) {
+          if (skipNoPhone) {
+            continue;
+          }
+          const job = jobManager.getJob(jobId);
+          const isDuplicate = job.results.some(
+            (r) => r.url === res.url && r.title === res.title
+          );
+          if (!isDuplicate && resultsCount < maxResults) {
+            resultsCount++;
+            const item = {
+              index: resultsCount,
+              title: res.title,
+              url: res.url,
+              phone: '',
+              email: email,
+              snippet: res.snippet,
+              platform: platformQuery,
+            };
+            jobManager.addResult(jobId, item);
+            jobManager.updateProgress(
+              jobId,
+              Math.min(25 + (resultsCount / maxResults) * 70, 95),
+              `✅ [${resultsCount}] Found: ${res.title}`
+            );
+          }
           continue;
         }
 
@@ -343,6 +407,7 @@ async function scrapeSearch(jobId, platform, category, location, contactPrefix, 
               title: res.title,
               url: res.url,
               phone: phone,
+              email: email,
               snippet: res.snippet,
               platform: platformQuery,
             };

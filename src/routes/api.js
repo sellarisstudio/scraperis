@@ -13,7 +13,7 @@ const MAX_CONCURRENT = parseInt(process.env.MAX_CONCURRENT_JOBS) || 2;
  */
 router.post('/scrape', (req, res) => {
   try {
-    const { query, location, maxResults, mode, platform, contactPrefix, searchTarget, serpApiKey, headless, captchaTimeout, usePersistent } = req.body;
+    const { query, location, maxResults, mode, platform, contactPrefix, searchTarget, serpApiKey, headless, captchaTimeout, usePersistent, skipNoPhone } = req.body;
 
     if (!query || !location) {
       return res.status(400).json({
@@ -35,6 +35,7 @@ router.post('/scrape', (req, res) => {
     const isHeadless = headless !== undefined ? !!headless : (process.env.BROWSER_HEADLESS !== 'false');
     const activeCaptchaTimeout = parseInt(captchaTimeout) || 60;
     const activeUsePersistent = usePersistent !== undefined ? !!usePersistent : true;
+    const activeSkipNoPhone = skipNoPhone !== undefined ? !!skipNoPhone : true;
 
     if (activeMode === 'search') {
       const activePlatform = platform || 'instagram.com';
@@ -43,13 +44,13 @@ router.post('/scrape', (req, res) => {
       const activeSearchTarget = searchTarget || 'google';
 
       // Start search scraping (Google, DuckDuckGo, Bing, Yahoo, SerpApi)
-      scrapeSearch(job.id, activePlatform, query, location, activeContactPrefix, max, activeSearchTarget, serpApiKey, isHeadless, activeCaptchaTimeout, activeUsePersistent).catch((err) => {
+      scrapeSearch(job.id, activePlatform, query, location, activeContactPrefix, max, activeSearchTarget, serpApiKey, isHeadless, activeCaptchaTimeout, activeUsePersistent, activeSkipNoPhone).catch((err) => {
         console.error('Unhandled Search scraper error:', err);
         jobManager.setError(job.id, err.message);
       });
     } else {
       // Start google maps scraping
-      scrapeGoogleMaps(job.id, query, location, max, isHeadless, activeCaptchaTimeout, activeUsePersistent).catch((err) => {
+      scrapeGoogleMaps(job.id, query, location, max, isHeadless, activeCaptchaTimeout, activeUsePersistent, activeSkipNoPhone).catch((err) => {
         console.error('Unhandled Maps scraper error:', err);
         jobManager.setError(job.id, err.message);
       });
@@ -181,21 +182,31 @@ router.get('/export/:jobId/:format', (req, res) => {
         Platform: r.platform,
         Link: r.url,
         Phone: r.phone,
+        Email: r.email || '',
         Snippet: r.snippet,
       }))
     : job.results.map((r) => ({
         No: r.index,
         'Business Name': r.name,
         Category: r.category,
+        Daerah: r.daerah || '',
         Rating: r.rating,
         'Reviews Count': r.reviewCount,
         Address: r.address,
         Phone: r.phone,
         Website: r.website,
+        'Description / About': r.description || '',
+        'Price Range': r.priceRange || '',
+        'Operational Status': r.status || '',
+        'Claimed Status': r.claimed || '',
+        'Social Media': r.socialMedia || '',
+        'Menu URL': r.menuUrl || '',
+        'Reservation URL': r.reservationUrl || '',
+        'Cover Image URL': r.thumbnail || '',
         'Plus Code': r.plusCode,
         'Opening Hours': r.hours,
-        Latitude: r.lat,
-        Longitude: r.lng,
+        Latitude: r.lat != null ? r.lat : '',
+        Longitude: r.lng != null ? r.lng : '',
         'Google Maps URL': r.mapsUrl,
       }));
 
@@ -218,20 +229,31 @@ router.get('/export/:jobId/:format', (req, res) => {
     'No': 5,
     'Business Name': 35,
     'Category': 20,
+    'Daerah': 20,
     'Rating': 8,
     'Reviews Count': 12,
     'Address': 50,
     'Phone': 18,
     'Website': 35,
+    'Description / About': 45,
+    'Price Range': 15,
+    'Operational Status': 18,
+    'Claimed Status': 18,
+    'Social Media': 40,
+    'Menu URL': 35,
+    'Reservation URL': 35,
+    'Cover Image URL': 40,
     'Plus Code': 15,
     'Opening Hours': 30,
-    'Latitude': 12,
-    'Longitude': 12,
+    'Latitude': 14,
+    'Longitude': 14,
     'Google Maps URL': 50,
     // Search
     'Page Title': 45,
     'Platform': 20,
     'Link': 50,
+    'Phone': 18,
+    'Email': 25,
     'Snippet': 75,
   };
 
@@ -325,10 +347,27 @@ router.post('/export/basket/:format', (req, res) => {
         No: i + 1,
         'Name/Title': r.name,
         'Category/Platform': r.category,
+        Daerah: r.daerah || '',
+        Rating: r.rating != null ? r.rating : '',
+        'Reviews Count': r.reviewCount != null ? r.reviewCount : '',
         Phone: r.phone,
+        Email: r.email || '',
         'Address/Snippet': r.address,
-        Source: r.source,
-        Link: r.url,
+        Website: r.website || '',
+        'Description / About': r.description || '',
+        'Price Range': r.priceRange || '',
+        'Operational Status': r.status || '',
+        'Claimed Status': r.claimed || '',
+        'Social Media': r.socialMedia || '',
+        'Menu URL': r.menuUrl || '',
+        'Reservation URL': r.reservationUrl || '',
+        'Cover Image URL': r.thumbnail || '',
+        'Plus Code': r.plusCode || '',
+        'Opening Hours': r.hours || '',
+        Latitude: r.lat != null ? r.lat : '',
+        Longitude: r.lng != null ? r.lng : '',
+        Source: r.source || '',
+        Link: r.url || r.mapsUrl || '',
         'Date Saved': formattedDate
       };
     });
@@ -363,13 +402,30 @@ router.post('/export/basket/:format', (req, res) => {
       // Define default widths
       const colWidths = {
         'No': 5,
-        'Nama/Judul': 40,
-        'Kategori/Platform': 25,
-        'Telepon': 20,
-        'Alamat/Snippet': 60,
-        'Sumber': 15,
-        'Link': 60,
-        'Tanggal Disimpan': 22,
+        'Name/Title': 35,
+        'Category/Platform': 25,
+        'Daerah': 20,
+        'Rating': 10,
+        'Reviews Count': 14,
+        'Phone': 20,
+        'Email': 25,
+        'Address/Snippet': 50,
+        'Website': 35,
+        'Description / About': 40,
+        'Price Range': 15,
+        'Operational Status': 18,
+        'Claimed Status': 18,
+        'Social Media': 35,
+        'Menu URL': 30,
+        'Reservation URL': 30,
+        'Cover Image URL': 30,
+        'Plus Code': 18,
+        'Opening Hours': 30,
+        'Latitude': 14,
+        'Longitude': 14,
+        'Source': 15,
+        'Link': 50,
+        'Date Saved': 22,
       };
 
       // Set column widths dynamically based on active keys

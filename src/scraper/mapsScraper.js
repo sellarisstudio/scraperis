@@ -69,20 +69,37 @@ function formatPhoneID(raw) {
 /**
  * Extract business data from a single Google Maps listing panel
  */
-async function extractBusinessDetail(page) {
+async function extractBusinessDetail(page, location = '') {
   try {
-    return await page.evaluate(() => {
+    return await page.evaluate((searchLoc) => {
+      const cleanText = (str) => {
+        if (!str) return '';
+        return str
+          .replace(/[\u00A0\u202F\u200B\uFEFF]/g, ' ')
+          .replace(/^[\s\u00B7\u2022\u2023\u25E6\u2043\u2219·•\-|]+/g, '')
+          .replace(/[\s\u00B7\u2022\u2023\u25E6\u2043\u2219·•]+/g, (match) => {
+            if (/[\u00B7\u2022\u2023\u25E6\u2043\u2219·•]/.test(match)) {
+              return ' | ';
+            }
+            return ' ';
+          })
+          .replace(/\|\s*\|+/g, '|')
+          .replace(/^\|\s*|\s*\|$/g, '')
+          .replace(/\s{2,}/g, ' ')
+          .trim();
+      };
+
       const getText = (selectors) => {
         for (const sel of selectors) {
           const el = document.querySelector(sel);
-          if (el && el.textContent.trim()) return el.textContent.trim();
+          if (el && el.textContent.trim()) return cleanText(el.textContent);
         }
         return '';
       };
 
       const getAttr = (selector, attr) => {
         const el = document.querySelector(selector);
-        return el ? el.getAttribute(attr) || '' : '';
+        return el ? cleanText(el.getAttribute(attr) || '') : '';
       };
 
       // Business name
@@ -125,7 +142,7 @@ async function extractBusinessDetail(page) {
         'button[aria-label*="Address"] div.fontBodyMedium, ' +
         'button[aria-label*="Alamat"] div.fontBodyMedium'
       );
-      const address = addressEl ? addressEl.textContent.trim() : '';
+      const address = cleanText(addressEl ? addressEl.textContent : '');
 
       // Phone
       const phoneEl = document.querySelector(
@@ -155,9 +172,80 @@ async function extractBusinessDetail(page) {
       const hoursEl = document.querySelector(
         'button[data-item-id*="hour"], div[aria-label*="Hours"], div[aria-label*="Jam"]'
       );
-      const hours = hoursEl ? hoursEl.getAttribute('aria-label') || '' : '';
+      const hours = cleanText(hoursEl ? hoursEl.getAttribute('aria-label') || '' : '');
 
-      // Coordinates from URL
+      // Price Range / Level (e.g. $$, Rp 25.000–50.000, Murah/Sedang)
+      let priceRange = '';
+      const priceEl = document.querySelector(
+        'span.mgr77e, span[aria-label*="Price" i], span[aria-label*="Harga" i], span.mgr77e span'
+      );
+      if (priceEl) {
+        priceRange = cleanText(priceEl.getAttribute('aria-label') || priceEl.textContent);
+      } else {
+        // Look for currency symbols in top info section
+        const headerInfo = document.querySelector('div.F7nice')?.parentElement;
+        if (headerInfo) {
+          const priceMatch = headerInfo.textContent.match(/(?:Rp\s?[\d.,]+(?:[–-][\d.,]+)?|\${1,4}|€{1,4})/);
+          if (priceMatch) {
+            priceRange = cleanText(priceMatch[0]);
+          }
+        }
+      }
+
+      // Operational Status (e.g. Open now / Buka, Closed / Tutup, Temporarily closed)
+      let status = '';
+      const statusEl = document.querySelector(
+        'div.ZDu9vd span, span[style*="rgb(217, 48, 37)"], span[style*="rgb(24, 128, 56)"], button[data-item-id*="hour"] span.fontBodyMedium, div.OqCZI span'
+      );
+      if (statusEl) {
+        status = cleanText(statusEl.textContent);
+      } else {
+        // Check if any element mentions Open / Closed status
+        const hourSection = document.querySelector('button[data-item-id*="hour"]');
+        if (hourSection) {
+          const hourText = hourSection.textContent;
+          const statusMatch = hourText.match(/(Buka\s?[^·\n]*|Tutup\s?[^·\n]*|Open\s?[^·\n]*|Closed\s?[^·\n]*)/i);
+          if (statusMatch) {
+            status = cleanText(statusMatch[0]);
+          }
+        }
+      }
+
+      // Claimed / Verification Status
+      const claimEl = document.querySelector(
+        'button[data-item-id="merchant"], a[data-item-id="merchant"], a[aria-label*="Claim this business" i], a[aria-label*="Miliki bisnis ini" i], button[aria-label*="Claim this business" i], button[aria-label*="Miliki bisnis ini" i], a[href*="claim?mid"], a[href*="business.google.com/create"]'
+      );
+      const claimed = claimEl ? 'Unclaimed (Belum Diklaim)' : 'Claimed (Terverifikasi)';
+
+      // Social Media Links (Instagram, Facebook, TikTok, Twitter/X, LinkedIn, YouTube)
+      const socialLinks = [];
+      document.querySelectorAll('a[href*="instagram.com"], a[href*="facebook.com"], a[href*="tiktok.com"], a[href*="twitter.com"], a[href*="x.com"], a[href*="linkedin.com"], a[href*="youtube.com"], a[href*="threads.net"]').forEach((a) => {
+        const h = a.href;
+        if (h && !h.includes('google.com') && !socialLinks.includes(h)) {
+          socialLinks.push(h);
+        }
+      });
+      const socialMedia = socialLinks.join(', ');
+
+      // Menu URL
+      const menuEl = document.querySelector(
+        'a[data-item-id="menu"], a[aria-label*="Menu" i], a[aria-label*="menu" i]'
+      );
+      const menuUrl = menuEl ? menuEl.href || '' : '';
+
+      // Reservation URL
+      const resEl = document.querySelector(
+        'a[data-item-id*="action:3"], a[data-item-id*="action:4"], a[aria-label*="Reserve" i], a[aria-label*="Reservasi" i], a[aria-label*="Book" i]'
+      );
+      const reservationUrl = resEl ? resEl.href || '' : '';
+
+      // Cover Photo / Thumbnail
+      const imgEl = document.querySelector(
+        'button[jsaction*="heroHeaderImage"] img, div.Z6G2Ge img, div.lMbq3e img'
+      );
+      const thumbnail = imgEl ? imgEl.src || '' : '';
+
+      // Coordinates from URL or Page
       let lat = null;
       let lng = null;
       const url = window.location.href;
@@ -165,6 +253,69 @@ async function extractBusinessDetail(page) {
       if (coordMatch) {
         lat = parseFloat(coordMatch[1]);
         lng = parseFloat(coordMatch[2]);
+      } else {
+        const dataCoordMatch = url.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
+        if (dataCoordMatch) {
+          lat = parseFloat(dataCoordMatch[1]);
+          lng = parseFloat(dataCoordMatch[2]);
+        }
+      }
+
+      // Extract City/Region/Daerah from address or fallback location
+      const extractDaerah = (addr, fallbackLoc = '') => {
+        if (!addr) return fallbackLoc || '';
+        
+        // Check for explicit Kota / Kabupaten keywords
+        const kotaMatch = addr.match(/(?:Kota Adm\.|Kota Administrasi|Kota|Kabupaten|Kab\.)\s+([A-Za-z\s]+?)(?:,|\s*\d{5}|$)/i);
+        if (kotaMatch && kotaMatch[1]) {
+          return kotaMatch[1].trim();
+        }
+
+        // Check for DKI Jakarta regions
+        if (/Jakarta\s*(?:Selatan|Pusat|Barat|Timur|Utara)?/i.test(addr)) {
+          const jkt = addr.match(/Jakarta\s*(?:Selatan|Pusat|Barat|Timur|Utara)?/i);
+          return jkt ? jkt[0].trim() : 'Jakarta';
+        }
+
+        // Split by commas and scan backwards
+        const parts = addr.split(',').map((p) => p.trim()).filter(Boolean);
+        if (parts.length >= 2) {
+          for (let i = parts.length - 1; i >= 0; i--) {
+            const part = parts[i];
+            if (/^\d{5}$/i.test(part) || /^Indonesia$/i.test(part)) continue;
+            if (/^(Jawa Barat|Jawa Timur|Jawa Tengah|Banten|Bali|DI Yogyakarta|Sumatera|Kalimantan|Sulawesi|Papua)/i.test(part)) {
+              continue;
+            }
+            if (/^Kec\./i.test(part) || /^Kecamatan/i.test(part)) continue;
+            if (/^RT\./i.test(part) || /^RW\./i.test(part) || /^No\./i.test(part)) continue;
+            
+            const cleanCity = part.replace(/^(?:Kota Adm\.|Kota|Kabupaten|Kab\.)\s+/i, '').replace(/\s*\d{5}.*$/, '').trim();
+            if (cleanCity.length > 2) {
+              return cleanCity;
+            }
+          }
+        }
+
+        return fallbackLoc || '';
+      };
+
+      const daerah = extractDaerah(address, searchLoc);
+
+      // Generate rich, human-readable paragraph description constructed from Business Name, Category, Address, Location, Phone, and Social Media
+      let description = '';
+      if (name) {
+        const catText = category ? `usaha di bidang ${category}` : 'bisnis';
+        const locText = address ? `beralamat di ${address}` : (daerah ? `berlokasi di daerah ${daerah}` : '');
+        description = `${name} merupakan ${catText}${locText ? ` yang ${locText}` : ''}.`;
+        if (phone) {
+          description += ` Untuk informasi lebih lanjut atau pemesanan dapat menghubungi nomor telepon ${phone}.`;
+        }
+        if (socialMedia) {
+          description += ` Akun media sosial resmi: ${socialMedia}.`;
+        } else if (website) {
+          description += ` Website resmi: ${website}.`;
+        }
+        description = description.trim();
       }
 
       // Google Maps URL
@@ -176,15 +327,24 @@ async function extractBusinessDetail(page) {
         reviewCount,
         category,
         address,
+        daerah,
         phone: phone || '',
         website: website.startsWith('http') ? website : '',
         plusCode,
         hours,
+        description,
+        priceRange,
+        status,
+        claimed,
+        socialMedia,
+        menuUrl,
+        reservationUrl,
+        thumbnail,
         lat,
         lng,
         mapsUrl,
       };
-    });
+    }, location);
   } catch (err) {
     console.error('Error extracting business detail:', err.message);
     return null;
@@ -194,7 +354,7 @@ async function extractBusinessDetail(page) {
 /**
  * Main scraping function
  */
-async function scrapeGoogleMaps(jobId, query, location, maxResults = 40, headless = true, captchaTimeout = 60, usePersistent = true) {
+async function scrapeGoogleMaps(jobId, query, location, maxResults = 40, headless = true, captchaTimeout = 60, usePersistent = true, skipNoPhone = true) {
   let browser = null;
   let context = null;
   let isTempProfile = false;
@@ -301,7 +461,7 @@ async function scrapeGoogleMaps(jobId, query, location, maxResults = 40, headles
       if (singleResult > 0) {
         // Single result page - extract directly
         jobManager.updateProgress(jobId, 50, '📍 Found single result, extracting...');
-        const detail = await extractBusinessDetail(page);
+        const detail = await extractBusinessDetail(page, location);
         if (detail && detail.name) {
           detail.phone = formatPhoneID(detail.phone);
           if (!detail.phone) {
@@ -456,12 +616,26 @@ async function scrapeGoogleMaps(jobId, query, location, maxResults = 40, headles
         await randomDelay(800, 1500);
 
         // Extract business detail
-        const detail = await extractBusinessDetail(page);
+        const detail = await extractBusinessDetail(page, location);
 
         if (detail && detail.name) {
           detail.phone = formatPhoneID(detail.phone);
 
-          if (!detail.phone) {
+          // Build rich, coherent paragraph description
+          const catText = detail.category ? `usaha di bidang ${detail.category}` : 'bisnis';
+          const locText = detail.address ? `beralamat di ${detail.address}` : (detail.daerah ? `berlokasi di daerah ${detail.daerah}` : '');
+          let desc = `${detail.name} merupakan ${catText}${locText ? ` yang ${locText}` : ''}.`;
+          if (detail.phone) {
+            desc += ` Untuk informasi lebih lanjut atau pemesanan dapat menghubungi nomor telepon ${detail.phone}.`;
+          }
+          if (detail.socialMedia) {
+            desc += ` Akun media sosial resmi: ${detail.socialMedia}.`;
+          } else if (detail.website) {
+            desc += ` Website resmi: ${detail.website}.`;
+          }
+          detail.description = desc.trim();
+
+          if (skipNoPhone && !detail.phone) {
             jobManager.updateProgress(
               jobId,
               progress,

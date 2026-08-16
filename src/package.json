@@ -1,6 +1,6 @@
 {
   "name": "scraperis",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Scraperis - Extract Business Data from Scraperis",
   "main": "main.js",
   "scripts": {
@@ -9,6 +9,7 @@
     "electron:dev": "electron .",
     "build:win": "electron-builder --win",
     "build:mac": "electron-builder --mac",
+    "build:all": "electron-builder -mw",
     "install-browser": "npx playwright install chromium --with-deps"
   },
   "keywords": [
@@ -40,6 +41,14 @@
         "nsis"
       ]
     },
+    "mac": {
+      "icon": "public/images/logo.png",
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.utilities"
+    },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
@@ -48,7 +57,8 @@
     },
     "files": [
       "**/*",
-      "!dist/**/*"
+      "!dist/**/*",
+      "!user_data/**/*"
     ],
     "asar": false
   },
